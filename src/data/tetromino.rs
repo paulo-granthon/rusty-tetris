@@ -58,8 +58,8 @@ impl Tetromino {
     }
 
     // overwrites the Tetromino's grid
-    pub fn set_grid (&mut self, new_griw: Vec<Vec<bool>>) {
-        self.grid = new_griw
+    pub fn set_grid (&mut self, new_grid: Vec<Vec<bool>>) {
+        self.grid = new_grid
     }
 
     // rotates the Tetromino

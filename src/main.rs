@@ -1,16 +1,21 @@
-pub mod data; use data::*;
+pub mod data; use std::ops::Deref;
+
+use data::*;
 
 extern crate doryen_rs; use doryen_rs::{App, AppOptions, DoryenApi, Engine, TextAlign, UpdateEvent, Console};
 
 const CONSOLE_WIDTH: u32 = 80;
 const CONSOLE_HEIGHT: u32 = 80;
+const MAX_FPS: usize = 60;
+
+const GAME_SPEED: usize = 0;
 
 const PLAYFIELD_WIDTH: u8 = 10;
 const PLAYFIELD_HEIGHT: u8 = 24;
 
 const BLOCK_SCALE: u8 = 2;
 
-const RENDER_DEBUG: bool = false;
+const DEBUG_RENDER: bool = false;
 
 pub struct RustyTetris {
     playfield: [[Option<RTColor>; PLAYFIELD_WIDTH as usize]; PLAYFIELD_HEIGHT as usize],
@@ -18,6 +23,8 @@ pub struct RustyTetris {
     cur_con: Option<Console>,
     cur_pos: (i8, i8),
     score: i32,
+    tick_delay:usize,
+    t:usize,
 
 }
 
@@ -31,32 +38,87 @@ impl RustyTetris {
             cur_tetromino: Default::default(),
             cur_con: None,
             cur_pos: (0, 0),
-            score: 0
+            score: 0,
+            tick_delay: GAME_SPEED,
+            t: 0,
         }
     }
 
     // define the next Tetromino of the match
     pub fn next (&mut self) {
         let t = tetro_lib::random();
-        // println!("{:?}", &t);
-        let size = (t.grid.len() as u32, t.grid.len() as u32);
+        // let t = Tetromino { grid: vec![vec![true;1];1], color: RTColor::Green };
+        let size = (t.grid[0].len() as u32, t.grid.len() as u32);
         self.cur_tetromino = Some(t);
-        self.cur_con = Some(Console::new(size.0, size.1));
-        self.cur_pos = ((CONSOLE_WIDTH as i8 / 2) - (size.0 as i8 / 2), (CONSOLE_HEIGHT as i8 / 2) - (size.1 as i8 / 2))
+        self.cur_con = Some(Console::new(size.0 * BLOCK_SCALE as u32, size.1 * BLOCK_SCALE as u32));
+        self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0)
+    }
+
+    // moves the current Tetromino
+    pub fn move_cur (&mut self, dir: (i8, i8)) -> bool {
+
+        // check if Some current Tetromino
+        match &self.cur_tetromino {
+            Some(tetromino) => {  
+                
+                let width = tetromino.grid[0].len();
+                let height = tetromino.grid.len();
+                
+                // calculate the new position of the Tetromino by clamping it a bit over the palyfield
+                // since collision is defined by the Tetromino's grid instead of bounding box
+                let new_pos = (
+                    (self.cur_pos.0 + dir.0).min(PLAYFIELD_WIDTH as i8).max(-(width as i8)), 
+                    (self.cur_pos.1 + dir.1).min(PLAYFIELD_HEIGHT as i8).max(-(height as i8))
+                );
+
+                // if new_pos.1 >= ((PLAYFIELD_HEIGHT) * BLOCK_SCALE) as i8 { println!("TOUCHING!!!") }
+
+                // calculate the correcttion value to further clamp the Tetromino inside the playfield
+                let mut correction: (i8, i8) = (0, 0);
+                let mut cur_cor_x: i8 = 0;
+                let mut cur_cor_y: Vec<i8> = vec![0; height];
+                for y in 0..height {
+                    let mut detected_at_y = false;
+                    for x in 0..width {
+                        if !tetromino.grid[x][y] { continue; }
+                        if (new_pos.0 + x as i8) < 0                      { cur_cor_x    += 1 }
+                        if  new_pos.0 + x as i8 >= PLAYFIELD_WIDTH as i8  { cur_cor_x    -= 1 }
+                        if detected_at_y { continue; }
+                        if (new_pos.1 + y as i8) < 0                      { cur_cor_y[y] += 1; detected_at_y = true; }
+                        if  new_pos.1 + y as i8 >= PLAYFIELD_HEIGHT as i8 { cur_cor_y[y] -= 1; detected_at_y = true; }
+                    }
+                    if cur_cor_x.abs() > correction.0.abs() { correction.0 = cur_cor_x }
+                    cur_cor_x = 0;
+                }
+                for cor_y in cur_cor_y {
+                    if cor_y.abs() > correction.1.abs() { correction.1 = cor_y }
+                }
+
+                // if correction.0 != 0 || correction.1 != 0 { println!("correction: {}, {}", correction.0, correction.1)}
+
+                // apply the new position
+                self.cur_pos = (new_pos.0 + correction.0, new_pos.1 + correction.1);
+
+                // Tetronimo is still current
+                return correction.1 < 0;
+
+            }
+            None => false
+        }
     }
 
     // rotates the current Tetromino
     pub fn rotate (&mut self, clockwise: bool) {
         match &mut self.cur_tetromino {
             Some(t) => {
-                // println!("\n{:?}\n", &t);
                 let rotated = t.get_rotated(clockwise).to_owned();
+
+                // check rotated
+
                 t.set_grid(rotated);
-                // println!("\n{:?}\n", &t);
             },
             None => {}
-        };
-        
+        }
     }
 
     // render the current Tetromino 
@@ -79,15 +141,21 @@ impl RustyTetris {
 
                         // for each position on the Tetromino's grid
                         for x in 0..t.grid.len() {
-                            for y in 0..t.grid[0].len(){
+                            for y in 0..t.grid[0].len() {
 
-                                // match value at position
-                                match t.grid[x][y] {
+                                for xs in 0..BLOCK_SCALE as i32 {
+                                    for ys in 0..BLOCK_SCALE as i32 {
 
-                                    // render this position if true, render blank if false
-                                    true => con.back(x as i32, y as i32, t.color.value().1),
-                                    false => con.back(x as i32, y as i32, RTColor::White.value().1)
+                                        // render this position if true, render blank if false
+                                        con.back(xs + (x as u8 * BLOCK_SCALE) as i32, ys + (y as u8 * BLOCK_SCALE) as i32, if t.grid[x][y] {
+                                            t.color.value().1
+                                        } else {
+                                            RTColor::White.value().1
+                                        });
+                                    }
                                 }
+            
+                                
                             }
                         };
                     }
@@ -123,16 +191,17 @@ impl Engine for RustyTetris {
 
     // Called every frame
     fn update(&mut self, api: &mut dyn DoryenApi) -> Option<UpdateEvent> {
+        if self.t < self.tick_delay {
+            println!("{}/{}", self.t, self.tick_delay);
+            self.t += 1;
+            return None;
+        }
+        self.t = 0;
+
+        // self.mouse_pos = input.mouse_pos();
 
         // get the current input
         let input = api.input();
-
-        // handle left/right movementt
-        if input.key("ArrowLeft")  { self.cur_pos.0 = (self.cur_pos.0 - 1).max(1); } else 
-        if input.key("ArrowRight") { self.cur_pos.0 = (self.cur_pos.0 + 1).min(CONSOLE_WIDTH as i8 - 2); }
-        if input.key("ArrowUp")    { self.cur_pos.1 = (self.cur_pos.1 - 1).max(1); } else 
-        if input.key("ArrowDown")  { self.cur_pos.1 = (self.cur_pos.1 + 1).min(CONSOLE_HEIGHT as i8 - 2); }
-        // self.mouse_pos = input.mouse_pos();
 
         let input_text = input.text();
         // if !input_text.is_empty() { println!("{}", input_text); }
@@ -142,7 +211,19 @@ impl Engine for RustyTetris {
             "e" | "E" => self.rotate(false),
             " " => self.next(),
             _=> {}
-        }
+        };
+
+        // handle left/right movementt
+        if self.move_cur((
+                if input.key("ArrowLeft") {-1} else if input.key("ArrowRight") { 1 } else { 0 },
+                // if input.key("ArrowUp") {-1} else if input.key("ArrowDown") { 1 } else { 0 }
+                1
+            )
+        ) {
+
+            self.next()
+
+        } 
 
         // capture the screen
         // if input.key("ControlLeft") && input.key_pressed("KeyS") {
@@ -155,7 +236,10 @@ impl Engine for RustyTetris {
         None
     }
 
+    // master render method
     fn render(&mut self, api: &mut dyn DoryenApi) {
+        
+        // initialize the console
         let con = api.con();
         con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
 
@@ -170,18 +254,19 @@ impl Engine for RustyTetris {
             Some('.' as u16),
         );
 
+        // get a reference to the current position of the Tetromino
         let cur_pos = self.cur_pos;
 
+        // render the current Tetromino
         self.render_cur().unwrap().blit(
-            cur_pos.0 as i32,
-            cur_pos.1 as i32, 
+            (CONSOLE_WIDTH as i32 / 2) + (cur_pos.0 as i32 - (PLAYFIELD_WIDTH as i32 / 2)) * BLOCK_SCALE as i32,
+            (CONSOLE_HEIGHT as i32 / 2) + (cur_pos.1 as i32 - (PLAYFIELD_HEIGHT as i32 / 2)) * BLOCK_SCALE as i32,
             con, 
             1.0,
             1.0, 
-            if RENDER_DEBUG {None} else {Some(RTColor::White.value().1)}
+            if DEBUG_RENDER {None} else {Some(RTColor::White.value().1)}
         );
 
-        // rendedr the current tetromino
         // match &self.cur_con {
         //     Some(x) => x.blit(self.cur_pos.0.into(), self.cur_pos.1.into(), con, 1.0, 1.0, None),
         //     _=>{}
@@ -242,7 +327,7 @@ fn main() {
         show_cursor: true,
         resizable: false,
         intercept_close_request: false,
-        max_fps: 60,
+        max_fps: MAX_FPS,
     });
 
     app.set_engine(Box::new(RustyTetris::new()));
