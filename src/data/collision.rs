@@ -108,11 +108,11 @@ pub fn get_collision <const W: usize, const H: usize> (grid: &Vec<Vec<bool>>, po
             
             match field[(block_pos.0 + dir.0) as usize][(block_pos.1 + dir.1) as usize] {
                 Some (_color) => {
-                    println!("X: Some at ({}, {})", (block_pos.0 + dir.0) as usize, (block_pos.1 + dir.1) as usize);
+                    // println!("X: Some at ({}, {})", (block_pos.0 + dir.0) as usize, (block_pos.1 + dir.1) as usize);
                     return (-dir.0, -dir.1);
                 },
                 None => {
-                    println!("X: None at ({}, {})", (block_pos.0 + dir.0) as usize, (block_pos.1 + dir.1) as usize)
+                    // println!("X: None at ({}, {})", (block_pos.0 + dir.0) as usize, (block_pos.1 + dir.1) as usize)
                 }
             }
 

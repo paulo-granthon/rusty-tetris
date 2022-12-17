@@ -3,29 +3,38 @@ pub mod render; use render::*;
 
 extern crate doryen_rs; use doryen_rs::{App, AppOptions, DoryenApi, Engine, TextAlign, UpdateEvent, Console};
 
+// Debug constants
+const DEBUG_RENDER: bool = false;
+const DEBUG_MOVEMENT: bool = false;
+
+// doryen-rs constants
 const CONSOLE_WIDTH: u32 = 80;
 const CONSOLE_HEIGHT: u32 = 80;
 const MAX_FPS: usize = 60;
 
+// slows down the update rate of the game 
 const UPDATE_COOLDOWN: usize = 2;
 
-const RESET_MOVE_INTENT: (i8, i8) = (0, 0);
-// const RESET_MOVE_INTENT: (i8, i8) = (0, 1);
+// defines the values that the move_intent resets to
+const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
+const RESET_MOVE_INTENT_AUTO: (i8, i8) = (0, 1);
 
-const PLAYFIELD_X: i32 = CONSOLE_WIDTH as i32 / 2 - (PLAYFIELD_WIDTH * BLOCK_SCALE) as i32 / 2 - 1;
-const PLAYFIELD_Y: i32 = CONSOLE_HEIGHT as i32 / 2 - (PLAYFIELD_HEIGHT * BLOCK_SCALE) as i32 / 2 - 1;
-
-
-const PLAYFIELD_SIZE_X: u32 = (PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2;
-const PLAYFIELD_SIZE_Y: u32 = (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2;
-
+// sizes of the playfield array
 const PLAYFIELD_WIDTH: u8 = 10;
 const PLAYFIELD_HEIGHT: u8 = 24;
 
+// defines the size of each block of a Tetromino
 const BLOCK_SCALE: u8 = 2;
 
-const DEBUG_RENDER: bool = false;
+// render position of the playfield
+const PLAYFIELD_X: i32 = CONSOLE_WIDTH as i32 / 2 - (PLAYFIELD_WIDTH * BLOCK_SCALE) as i32 / 2 - 1;
+const PLAYFIELD_Y: i32 = CONSOLE_HEIGHT as i32 / 2 - (PLAYFIELD_HEIGHT * BLOCK_SCALE) as i32 / 2 - 1;
 
+// render sizes of the playfield
+const PLAYFIELD_SIZE_X: u32 = (PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2;
+const PLAYFIELD_SIZE_Y: u32 = (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2;
+
+// Rusty Tetris engine definition
 pub struct RustyTetris {
     playfield: [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize],
     playfield_con: Option<Console>,
@@ -83,71 +92,6 @@ impl RustyTetris {
         self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0)
     }
 
-    // moves the current Tetromino
-    pub fn move_cur (&mut self) -> bool {
-
-        // check if Some current Tetromino
-        match &self.cur_tetromino {
-            Some(tetromino) => {  
-                
-                let width = tetromino.grid[0].len();
-                let height = tetromino.grid.len();
-                
-                // calculate the new position of the Tetromino by clamping it a bit over the palyfield
-                // since collision is defined by the Tetromino's grid instead of bounding box
-                let new_pos = clamp_boundaries(
-                    (self.cur_pos.0 + self.move_intent.0, self.cur_pos.1 + self.move_intent.1),
-                    (-(width as i8), -(height as i8)),
-                    (PLAYFIELD_WIDTH as i8, PLAYFIELD_HEIGHT as i8),
-                );
-
-                // calculate the correcttion value to further clamp the Tetromino inside the playfield
-                let mut correction: (i8, i8) = get_correction(
-                    &tetromino.grid, 
-                    new_pos, 
-                    self.move_intent, 
-                    (PLAYFIELD_WIDTH as i8, PLAYFIELD_HEIGHT as i8)
-                );
-
-                // calculate the correction value in regards to collision with other Tetrominos on the playfield
-                let collision: (i8, i8) = get_collision(
-                    &tetromino.grid, 
-                    self.cur_pos, 
-                    self.move_intent, 
-                    &self.playfield
-                );
-
-                // // debbuging :D
-                // if correction.0 != 0 || correction.1 != 0 || collision.0 != 0 || collision.1 != 0{
-                //     println!("{}, {}", &self.playfield.len(), &self.playfield[1].len());
-                //     println!("correction: ({}, {})\tcollision: ({}, {})", correction.0, correction.1, collision.0, collision.1);
-                // }
-                
-                // pick the biggest correction as the actual correction that should be applied to the position of the Tetromino
-                correction = (
-                    if collision.0.abs() > correction.0.abs() { collision.0 } else {correction.0 },
-                    if collision.1.abs() > correction.1.abs() { collision.1 } else {correction.1 }
-                );
-
-                // // mode debbuging :D
-                // if correction.0 != 0 || correction.1 != 0 { println!("correction result: {}, {}", correction.0, correction.1)}
-
-                // apply the new position
-                self.cur_pos = (new_pos.0 + correction.0, new_pos.1 + correction.1);
-
-                // reset intent
-                self.move_intent = RESET_MOVE_INTENT;
-
-                // Tetronimo is still current
-                return correction.1 < 0;
-
-            }
-
-            // no current Tetromino
-            None => false
-        }
-    }
-
     // rotates the current Tetromino
     pub fn rotate (&mut self, clockwise: bool) {
         match &mut self.cur_tetromino {
@@ -159,86 +103,113 @@ impl RustyTetris {
         }
     }
 
-    // renders the playfield grid
-    pub fn render_playfield (&mut self) -> Option<&mut Console> {
+    // moves the current Tetromino
+    fn move_cur (&mut self, dir: (i8, i8)) -> bool {
 
-        match &mut self.playfield_con {
-            Some(pfcon) => {
-                // let mut pfcon = Console::new(PLAYFIELD_Xs, PLAYFIELD_Ys);
-                pfcon.clear(None, Some(RTColor::White.value().1), Some(' ' as u16));
-
-                // render the playfield
-                pfcon.rectangle(
-                    0,
-                    0,
-                    PLAYFIELD_SIZE_X,
-                    PLAYFIELD_SIZE_Y,
-                    Some((128, 128, 128, 255)),
-                    Some((0, 0, 0, 255)),
-                    Some('.' as u16),
+        // check if Some current Tetromino
+        match &self.cur_tetromino {
+            Some(tetromino) => {  
+                
+                let width = tetromino.grid[0].len();
+                let height = tetromino.grid.len();
+                
+                // calculate the new position of the Tetromino by clamping it a bit over the palyfield
+                // since collision is defined by the Tetromino's grid instead of bounding box
+                let new_pos = clamp_boundaries(
+                    (self.cur_pos.0 + dir.0, self.cur_pos.1 + dir.1),
+                    (-(width as i8), -(height as i8)),
+                    (PLAYFIELD_WIDTH as i8, PLAYFIELD_HEIGHT as i8),
                 );
 
-                for x in 0..self.playfield.len() {
-                    for y in 0..self.playfield[x].len() {
-                        match self.playfield[x][y] {
-                            Some(color) => render_block (
-                                pfcon,
-                                x as i32,
-                                y as i32,
-                                color.value().1, 
-                                BLOCK_SCALE as i32,
-                                1, 1
-                            ),
-                            None => continue
-                        };
-                    }
-                }
-                Some(pfcon)
+                // calculate the correcttion value to further clamp the Tetromino inside the playfield
+                let mut correction: (i8, i8) = get_correction(
+                    &tetromino.grid, 
+                    new_pos, 
+                    dir, 
+                    (PLAYFIELD_WIDTH as i8, PLAYFIELD_HEIGHT as i8)
+                );
+
+                // calculate the correction value in regards to collision with other Tetrominos on the playfield
+                let collision: (i8, i8) = get_collision(
+                    &tetromino.grid, 
+                    self.cur_pos, 
+                    dir, 
+                    &self.playfield
+                );
+
+                // // debugging :D
+                // if correction.0 != 0 || correction.1 != 0 || collision.0 != 0 || collision.1 != 0{
+                //     println!("{}, {}", &self.playfield.len(), &self.playfield[1].len());
+                //     println!("correction: ({}, {})\tcollision: ({}, {})", correction.0, correction.1, collision.0, collision.1);
+                // }
+                
+                // pick the biggest correction as the actual correction that should be applied to the position of the Tetromino
+                correction = (
+                    if collision.0.abs() > correction.0.abs() { collision.0 } else {correction.0 },
+                    if collision.1.abs() > correction.1.abs() { collision.1 } else {correction.1 }
+                );
+
+                // // mode debugging :D
+                // if correction.0 != 0 || correction.1 != 0 { println!("correction result: {}, {}", correction.0, correction.1)}
+
+                // apply the new position
+                self.cur_pos = (new_pos.0 + correction.0, new_pos.1 + correction.1);
+
+                // Tetronimo is still current
+                return correction.1 < 0;
 
             }
-            None => None
+
+            // no current Tetromino
+            None => false
         }
-
-
     }
 
-    // render the current Tetromino 
-    pub fn render_cur (&mut self) -> Option<&mut Console> {
+    // calls move_cur to move horizontally
+    pub fn move_x (&mut self) -> bool { self.move_cur((self.move_intent.0, 0)) }
 
-        // get a reference to the current Tetromino
-        let curt = self.cur_tetromino.as_ref();
+    // calls move_cur to move vertically
+    pub fn move_y (&mut self) -> bool { self.move_cur((0, self.move_intent.1)) }
 
-        // match Some / None
-        match &mut self.cur_con {
+    // resets the current move_intent
+    pub fn reset_move_intent (&mut self) { self.move_intent = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL } else { RESET_MOVE_INTENT_AUTO }}
 
-            // if Some
-            Some(con) => {
+    // adds the current Tetromino to the playfield as solid blocks
+    pub fn add_to_playfield (&mut self) {
 
-                // clear the Tetromino's console 
-                con.clear(None, Some(RTColor::White.value().1), Some(' ' as u16));
+        // unwrap the current Tetromino
+        match &self.cur_tetromino {
 
-                match curt {
-                    Some(t) => {
+            // no bugs
+            Some(t) => {
 
-                        // for each position on the Tetromino's grid
-                        for x in 0..t.grid.len() {
-                            for y in 0..t.grid[0].len() {
+                // loop through the Tetromino's ggrid
+                for y in 0..t.grid.len() as usize {
+                    for x in 0..t.grid[0].len() as usize {
 
-                                let color = if t.grid[x][y] { t.color.value().1 } else { RTColor::White.value().1 };
-                                render_block(con, x as i32, y as i32, color, BLOCK_SCALE as i32, 0, 0);
-                                
-                            }
-                        };
+                        // if no block at position, skip
+                        if !t.grid[x][y] { continue; }
+
+                        // get the target x and y of the block
+                        let target_x = self.cur_pos.0 + x as i8;
+                        let target_y = self.cur_pos.1 + y as i8;
+
+                        // check boundaries of playfield and skip if outside
+                        if {
+                            let mut oob = false;
+                            if target_x < 0 || target_y < 0 || target_x >= self.playfield.len() as i8 { oob = true; }
+                            if target_y >= self.playfield[0].len() as i8 { oob = true }
+                            oob
+                        } { continue; }
+
+                        // add the block at the position to the playfield
+                        self.playfield[target_x as usize][target_y as usize] = Some(t.color);
                     }
-                    None => return None,
                 }
+            }
 
-                // return the console reference
-                Some(con)
-            },
-
-            // no current Tetromino, return nothing
-            None => None
+            // bugs 
+            None => {}
         }
 
     }
@@ -307,45 +278,48 @@ impl Engine for RustyTetris {
                 self.move_intent.0
             },
 
-            // // move down auto + speedup/slowdown
-            // if input.key("ArrowUp")   {
-            //     (self.move_intent.1 - 1).max(1)
-            // } else if input.key("ArrowDown")  {
-            //     (self.move_intent.1 + 2).min(4)
-            // } else {
-            //     self.move_intent.1
-            // }
+            // automatic down movement if not debugging
+            if !DEBUG_MOVEMENT {
 
-            // move up/down
-            if input.key("ArrowUp")   {
-                (self.move_intent.1 - 1).max(-1)
-            } else if input.key("ArrowDown")  {
-                (self.move_intent.1 + 1).min(1)
-            } else {
-                self.move_intent.1
+                // auto move down + speedup/slowdown
+                if input.key("ArrowUp")   {
+                    (self.move_intent.1 - 1).max(1)
+                } else if input.key("ArrowDown")  {
+                    (self.move_intent.1 + 2).min(4)
+                } else {
+                    self.move_intent.1
+                }
+            } 
+            
+            // manual move if debug
+            else {
+
+                // manual move up/down
+                if input.key("ArrowUp")   {
+                    (self.move_intent.1 - 1).max(-1)
+                } else if input.key("ArrowDown")  {
+                    (self.move_intent.1 + 1).min(1)
+                } else {
+                    self.move_intent.1
+                }
             }
         );
 
         // apply movement to Tetromino
-        if (self.move_intent.0 != 0 || self.move_intent.1 != 0) && self.move_cur() {
-            match &self.cur_tetromino {
-                Some(t) => {
-                    for y in 0..t.grid.len() as usize {
-                        for x in 0..t.grid[0].len() as usize {
-                            if !t.grid[x][y] { continue; }
-                            // println!("pf: [{},{}]/[{},{}] | t:[{},{}]/[{},{}]", self.cur_pos.0 as usize + x, self.cur_pos.1 as usize + y, self.playfield.len(), self.playfield[0].len(), x, y, t.grid.len(), t.grid.len());
-                            let target_x = self.cur_pos.0 + x as i8;
-                            let target_y = self.cur_pos.1 + y as i8;
-                            if target_x < 0 || target_y < 0 || target_x >= self.playfield.len() as i8 || target_y >= self.playfield[0].len() as i8 { continue; }
-                            self.playfield[target_x as usize][target_y as usize] = Some(t.color);
-                        }
-                    }
-                }
-                None => {}
+        if self.move_intent.0 != 0 || self.move_intent.1 != 0 {
+
+            // apply the horizontal movement queued up by the player
+            self.move_x();
+
+            // apply the vertical movement; 
+            // true: Tetromino collided with something
+            if self.move_y() {
+
+                self.add_to_playfield();
+
+                self.next()
             }
-
-            self.next()
-
+            self.reset_move_intent();
         } 
 
         // capture the screen
@@ -366,7 +340,7 @@ impl Engine for RustyTetris {
         let con = api.con();
         con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
 
-        match self.render_playfield() {
+        match render_playfield(self.playfield_con.as_mut(), &self.playfield, (PLAYFIELD_SIZE_X, PLAYFIELD_SIZE_Y), BLOCK_SCALE as i32) {
             Some(pfcon) => pfcon.blit(
                 PLAYFIELD_X,
                 PLAYFIELD_Y,
@@ -382,7 +356,7 @@ impl Engine for RustyTetris {
         let cur_pos = self.cur_pos;
 
         // render the current Tetromino
-        match self.render_cur() {
+        match render_tetromino(self.cur_con.as_mut(), &self.cur_tetromino, BLOCK_SCALE as i32) {
             Some(cur_con) => cur_con.blit(
                 (CONSOLE_WIDTH as i32 / 2) + (cur_pos.0 as i32 - (PLAYFIELD_WIDTH as i32 / 2)) * BLOCK_SCALE as i32,
                 (CONSOLE_HEIGHT as i32 / 2) + (cur_pos.1 as i32 - (PLAYFIELD_HEIGHT as i32 / 2)) * BLOCK_SCALE as i32,
