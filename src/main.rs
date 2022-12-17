@@ -5,7 +5,7 @@ extern crate doryen_rs; use doryen_rs::{App, AppOptions, DoryenApi, Engine, Text
 
 // Debug constants
 const DEBUG_RENDER: bool = false;
-const DEBUG_MOVEMENT: bool = false;
+const DEBUG_MOVEMENT: bool = true;
 
 // doryen-rs constants
 const CONSOLE_WIDTH: u32 = 80;
@@ -13,7 +13,7 @@ const CONSOLE_HEIGHT: u32 = 80;
 const MAX_FPS: usize = 60;
 
 // slows down the update rate of the game 
-const UPDATE_COOLDOWN: usize = 2;
+const UPDATE_COOLDOWN: usize = 6;
 
 // defines the values that the move_intent resets to
 const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
@@ -27,12 +27,12 @@ const PLAYFIELD_HEIGHT: u8 = 24;
 const BLOCK_SCALE: u8 = 2;
 
 // render position of the playfield
-const PLAYFIELD_X: i32 = CONSOLE_WIDTH as i32 / 2 - (PLAYFIELD_WIDTH * BLOCK_SCALE) as i32 / 2 - 1;
-const PLAYFIELD_Y: i32 = CONSOLE_HEIGHT as i32 / 2 - (PLAYFIELD_HEIGHT * BLOCK_SCALE) as i32 / 2 - 1;
+const R_PLAYFIELD_X: i32 = CONSOLE_WIDTH as i32 / 2 - (PLAYFIELD_WIDTH * BLOCK_SCALE) as i32 / 2 - 1;
+const R_PLAYFIELD_Y: i32 = CONSOLE_HEIGHT as i32 / 2 - (PLAYFIELD_HEIGHT * BLOCK_SCALE) as i32 / 2 - 1;
 
 // render sizes of the playfield
-const PLAYFIELD_SIZE_X: u32 = (PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2;
-const PLAYFIELD_SIZE_Y: u32 = (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2;
+const R_PLAYFIELD_SIZE_X: u32 = (PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2;
+const R_PLAYFIELD_SIZE_Y: u32 = (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2;
 
 // Rusty Tetris engine definition
 pub struct RustyTetris {
@@ -50,18 +50,23 @@ pub struct RustyTetris {
 
 }
 
-// stores match information
+// engine implementation
 impl RustyTetris {
 
     // creates a blank playfield
-    fn create_field() -> [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize] {
+    fn create_playfield() -> [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize] {
         [[Default::default(); PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize]
+    }
+
+    // replaces the playfield
+    pub fn set_playfield (&mut self, new_playfield: [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize]) {
+        self.playfield = new_playfield;
     }
 
     // create a new instance
     pub fn new() -> Self {
         Self {
-            playfield: Self::create_field(),
+            playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
             cur_tetromino: Default::default(),
             cur_con: None,
@@ -77,15 +82,15 @@ impl RustyTetris {
 
     // resets the game
     pub fn reset(&mut self) {
-        self.playfield = Self::create_field();
+        self.playfield = Self::create_playfield();
         self.score = 0;
         self.next();
     }
 
     // define the next Tetromino of the match
     pub fn next (&mut self) {
-        // let t = tetro_lib::random();
-        let t = Tetromino { grid: vec![vec![true;1];1], color: RTColor::Green };
+        let t = database::random();
+        // let t = Tetromino { grid: vec![vec![true;1];1], color: RTColor::Green };
         let size = (t.grid[0].len() as u32, t.grid.len() as u32);
         self.cur_tetromino = Some(t);
         self.cur_con = Some(Console::new(size.0 * BLOCK_SCALE as u32, size.1 * BLOCK_SCALE as u32));
@@ -214,6 +219,66 @@ impl RustyTetris {
 
     }
 
+    // checks if there are full rows, destroys them and increases the score if any
+    pub fn check_rows (&mut self) -> Option<[[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize]> {
+
+        // println!("\nchecking rows");
+
+        // initialize the new playfield
+        let mut new_playfield = [[None; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize];
+
+        // initialize a index offset to remove rows
+        let mut y_offset = 0;
+
+        // loop through the rows
+        for y in (0..PLAYFIELD_HEIGHT as usize).rev() {
+            // println!("{}", y);
+
+            // if the row is full
+            if { let mut row_is_full = true;
+            // let mut row_is_full = true;
+
+                // loop through the blocks on this row
+                for x in 0..PLAYFIELD_WIDTH as usize {
+
+                    // if any block is empty, row is not full
+                    match self.playfield[x][y] {
+                        None => { row_is_full = false; break; }
+                        Some(_) => {  }
+                    }
+                }
+
+                // println!("Row [{}] is {}", y, if row_is_full {"full"} else {"not full"});
+
+                // return the result of the verification
+                row_is_full
+                
+            } && y_offset == 0 {
+            // if row_is_full {
+
+                // println!("Row [{}] is full", y);
+
+                // increase the y_offset to use the same y index on the next iteration
+                y_offset += 1;
+                // continue;
+
+            }
+
+            // else { println!("Row [{}] is empty", y); }
+
+            // copy this row to the new playfield
+            for x in 0..PLAYFIELD_WIDTH as usize {
+                let pick_y = (y as i8 - y_offset as i8) as usize;
+                new_playfield[x][y] = if pick_y < PLAYFIELD_HEIGHT as usize { self.playfield[x][pick_y] } else { None }
+            }
+
+        }
+
+        // return the new playfield if at least one row is erased
+        if y_offset > 0 { Some(new_playfield) } else { None }
+
+    }
+
 }
 
 // Doryen engine implementation for RustyTetris
@@ -253,9 +318,9 @@ impl Engine for RustyTetris {
             self.reset();
         }
 
-        if input.key("Enter") {
+        if input.key_pressed("Enter") {
             println!("Paused");
-            self.paused = true;
+            self.paused = !self.paused;
         }
 
         if self.paused { return None }
@@ -315,10 +380,38 @@ impl Engine for RustyTetris {
             // true: Tetromino collided with something
             if self.move_y() {
 
+                // add the Tetromino the the playfield
                 self.add_to_playfield();
 
+                let mut next_playfield = self.check_rows();
+
+                // repeat as long as there's a next playfield
+                loop {
+                    match next_playfield {
+                        Some(playfield) => {
+                            self.set_playfield(playfield);
+                            // println!("new playfield");
+                            next_playfield = self.check_rows();
+                        },
+                        None => {
+                        break
+                        }
+                    }
+
+                    // TODO: this is where some sort of animation comes into play
+
+                    // replace the playfield with the next one
+                    // self.set_playfield(next_playfield);
+
+                    // println!("new playfield");
+                    
+                }
+
+                // lose control over the Tetromino and get the next one
                 self.next()
             }
+
+            // reset the move_intent after fulfilling both movement axes
             self.reset_move_intent();
         } 
 
@@ -340,10 +433,10 @@ impl Engine for RustyTetris {
         let con = api.con();
         con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
 
-        match render_playfield(self.playfield_con.as_mut(), &self.playfield, (PLAYFIELD_SIZE_X, PLAYFIELD_SIZE_Y), BLOCK_SCALE as i32) {
+        match render_playfield(self.playfield_con.as_mut(), &self.playfield, (R_PLAYFIELD_SIZE_X, R_PLAYFIELD_SIZE_Y), BLOCK_SCALE as i32) {
             Some(pfcon) => pfcon.blit(
-                PLAYFIELD_X,
-                PLAYFIELD_Y,
+                R_PLAYFIELD_X,
+                R_PLAYFIELD_Y,
                 con,
                 1.0,
                 1.0,
@@ -369,8 +462,8 @@ impl Engine for RustyTetris {
         }
 
         let grid_mouse_pos = (
-            (((self.mouse_pos.0 as i32 - PLAYFIELD_X) / BLOCK_SCALE as i32) as usize).min(self.playfield.len()-1).max(0),
-            (((self.mouse_pos.1 as i32 - PLAYFIELD_Y) / BLOCK_SCALE as i32) as usize).min(self.playfield[0].len()-1).max(0)
+            (((self.mouse_pos.0.floor() - R_PLAYFIELD_X as f32) / BLOCK_SCALE as f32).floor() as usize).min(self.playfield.len()-1).max(0),
+            (((self.mouse_pos.1.floor() - R_PLAYFIELD_Y as f32) / BLOCK_SCALE as f32).floor() as usize).min(self.playfield[0].len()-1).max(0)
         );
 
         con.print_color(
@@ -378,14 +471,14 @@ impl Engine for RustyTetris {
             (CONSOLE_HEIGHT - 3) as i32,
             &format!(
                 "#[white]{}: #[green]{}, {} #[white]| #[blue]{}, {}",
-                if (self.mouse_pos.0 as i32) < PLAYFIELD_X || ((self.mouse_pos.0 as i32) >= PLAYFIELD_X + PLAYFIELD_SIZE_X as i32) || 
-                   (self.mouse_pos.1 as i32) < PLAYFIELD_Y || (self.mouse_pos.1 as i32) >= PLAYFIELD_Y + PLAYFIELD_SIZE_Y as i32 { "oob"
-                } else { match &self.playfield[(PLAYFIELD_WIDTH - 1) as usize - grid_mouse_pos.0][(PLAYFIELD_HEIGHT - 1) as usize - grid_mouse_pos.1] {
+                if (self.mouse_pos.0 as i32) < R_PLAYFIELD_X || ((self.mouse_pos.0 as i32) >= R_PLAYFIELD_X + R_PLAYFIELD_SIZE_X as i32) || 
+                   (self.mouse_pos.1 as i32) < R_PLAYFIELD_Y || (self.mouse_pos.1 as i32) >= R_PLAYFIELD_Y + R_PLAYFIELD_SIZE_Y as i32 { "oob"
+                } else { match &self.playfield[grid_mouse_pos.0][grid_mouse_pos.1] {
                     Some(color) => &color.value().0,
                     None => "none"
                 }},
                 grid_mouse_pos.0, grid_mouse_pos.1,
-                self.mouse_pos.0 as i32, self.mouse_pos.1 as i32,
+                self.mouse_pos.0.floor() as i32, self.mouse_pos.1.floor() as i32,
             ),
             TextAlign::Center,
             None,

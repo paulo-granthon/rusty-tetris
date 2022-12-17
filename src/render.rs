@@ -1,4 +1,4 @@
-extern crate doryen_rs; use doryen_rs::{Console};
+extern crate doryen_rs; use doryen_rs::Console;
 
 use crate::data::tetromino::Tetromino;
 use crate::data::rtcolor::RTColor;
@@ -8,7 +8,7 @@ pub fn render_playfield<'a, const W: usize, const H: usize> (playfield_con: Opti
 
     match playfield_con {
         Some(pfcon) => {
-            // let mut pfcon = Console::new(PLAYFIELD_Xs, PLAYFIELD_Ys);
+
             pfcon.clear(None, Some(RTColor::White.value().1), Some(' ' as u16));
 
             // render the playfield
@@ -93,8 +93,7 @@ pub fn render_block (con: &mut Console, x: i32, y: i32, color: (u8, u8, u8, u8),
         for by in 0..scale {
 
             // remove foreground ascii from target location
-            if bx == 0 && by == 0 {con.ascii(x * scale + bx + offs_x, y * scale + by + offs_y, 1);}
-            else {con.ascii(x * scale + bx + offs_x, y * scale + by + offs_y, 0);}
+            con.ascii(x * scale + bx + offs_x, y * scale + by + offs_y, 0);
 
             // render this position if true, render blank if false
             con.back(x * scale + bx + offs_x, y * scale + by + offs_y, color);

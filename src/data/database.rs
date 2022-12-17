@@ -1,5 +1,5 @@
 use crate::tetromino::*;
-use std::slice::Iter;
+// use std::slice::Iter;
 use Tetrominos::*;
 
 const COUNT: usize = 7;
@@ -14,10 +14,10 @@ impl Tetrominos {
     }
 
     // Allows the enum iteration
-    pub fn iter() -> Iter<'static, Tetrominos> {
-        static TETROMINOS: [Tetrominos; COUNT] = [I, J, L, O, S, Z, T];
-        TETROMINOS.iter()
-    }
+    // pub fn iter() -> Iter<'static, Tetrominos> {
+    //     static TETROMINOS: [Tetrominos; COUNT] = [I, J, L, O, S, Z, T];
+    //     TETROMINOS.iter()
+    // }
 
     // Returns the Tetromino of the letter
     pub fn get(&self) -> Tetromino {
