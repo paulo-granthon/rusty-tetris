@@ -1,6 +1,12 @@
 use super::rtcolor::RTColor;
 
 
+// returns true if the given popsition is outside the range (0..size.x, 0..size.y)
+pub fn out_of_bounds (pos: (i8, i8), size: (i8, i8)) -> bool { pos.0 < 0 || pos.0 >= size.0 || pos.1 < 0 || pos.1 >= size.1 }
+
+// returns how much the given value it outside the axis range of 0..size
+pub fn out_of_bounds_axis (v: i8, size: i8) -> i8 { (size - 1 - v).min(0).min(v) }
+
 pub fn clamp_boundaries (pos:(i8, i8), start:(i8, i8), end:(i8, i8)) -> (i8, i8) {
     ((pos.0).max(start.0).min(end.0), (pos.1).max(start.1).min(end.1))
 }
@@ -78,33 +84,11 @@ pub fn get_collision <const W: usize, const H: usize> (grid: &Vec<Vec<bool>>, po
             // skip if no block on grid at x y
             if !grid[x as usize][y as usize] { continue; }
 
+            // calculate the position of this block inside of Tetromino
             let block_pos = (pos.0 + x, pos.1 + y);
 
-            // if outside bounds 
-            if {
-
-                let mut oob = false;
-
-                // check outside bounds x
-                if block_pos.0 + dir.0 < 0 || block_pos.0 + dir.0 >= field_size.0 {
-                    // cur_coll_x -= dir.0.signum();
-                    oob = true;
-                }
-
-                // check outside bounds y
-                if block_pos.1 + dir.1 < 0 || block_pos.1 + dir.1 >= field_size.1 {
-                    // if !detected_y_at_x {
-                    //     cur_coll_y[y as usize] -= dir.1.signum();
-                    //     detected_y_at_x = true;    
-                    // }
-                    oob = true;
-                }
-
-                // not outside bounds
-                oob
-
-            // if outside bounds detected, skip 
-            } { continue; }
+            // skip if outside bounds
+            if out_of_bounds((block_pos.0 + dir.0, block_pos.1 + dir.1), field_size) { continue; }
             
             match field[(block_pos.0 + dir.0) as usize][(block_pos.1 + dir.1) as usize] {
                 Some (_color) => {
@@ -124,4 +108,66 @@ pub fn get_collision <const W: usize, const H: usize> (grid: &Vec<Vec<bool>>, po
     // return the calculated value
     (0, 0)
 }
+
+
+pub fn get_rot_correction <const W: usize, const H: usize> (grid: &Vec<Vec<bool>>, pos:(i8, i8), field: &[[Option<RTColor>; W]; H]) -> i8 {
     
+    // get target grid and field dimensions
+    let grid_size : (i8, i8) = ( grid.len() as i8,  grid[0].len() as i8);
+    let field_size: (i8, i8) = (field.len() as i8, field[0].len() as i8);
+    
+    // initialize the correction value
+    let mut correction: i8 = 0;
+
+    // loop through y
+    for y in 0..grid_size.1 {
+
+        // loop through x
+        for x in 0..grid_size.0 {
+
+            // skip if no block on grid at x y
+            if !grid[x as usize][y as usize] { continue; }
+
+            // calculate the position of this block inside of Tetromino
+            let block_pos = (pos.0 + x, pos.1 + y);
+
+            // skip if outside bounds vertically
+            if out_of_bounds_axis(block_pos.1, field_size.1) != 0 { continue; }
+
+            // get how much this block is outside bounds horizontaly (0 if inside)
+            let oob_correction = out_of_bounds_axis(block_pos.0, field_size.0);
+
+            // if not 0
+            if oob_correction != 0 {
+                println!("oob_x: {}", oob_correction);
+
+                // compare with current correction
+                if oob_correction.abs() > correction.abs() { correction = oob_correction; }
+
+                // don't check collision in this case
+                continue;
+            }
+            
+            // match this position on the palyfield
+            match field[block_pos.0 as usize][block_pos.1 as usize] {
+
+                // if contains block
+                Some (_color) => {
+
+                    // calculate the correction 
+                    let corr_at_x = x - (grid_size.0 / 2);
+
+                    // compare with current correction
+                    if corr_at_x.abs() > correction.abs() { correction = corr_at_x }
+                },
+
+                // no block: nothing to compare
+                None => {}
+            }
+
+        }
+    }
+
+    // return the calculated value 
+    correction
+}

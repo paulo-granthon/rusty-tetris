@@ -19,7 +19,7 @@ impl fmt::Debug for Tetromino {
 impl Tetromino {
 
     // create a new Tetrommino
-    pub fn new(grid:Vec<Vec<bool>>, color: RTColor) -> Self { Tetromino { grid, color } }
+    // pub fn new(grid:Vec<Vec<bool>>, color: RTColor) -> Self { Tetromino { grid, color } }
 
     // create a new Tetromino from array
     pub fn from_array<const W: usize, const H: usize>(grid:[[bool;W];H], color:RTColor) -> Self {
@@ -29,25 +29,25 @@ impl Tetromino {
         }
     }
 
-    // returns the char at the Tetromino's grid position
-    pub fn char_at (&self, x:usize, y:usize, include_empty: bool) -> Option<char> {
-        if self.grid[x][y] {Some('#')} else if include_empty {Some('_')} else {None}
-    }
+    // // returns the char at the Tetromino's grid position
+    // pub fn char_at (&self, x:usize, y:usize, include_empty: bool) -> Option<char> {
+    //     if self.grid[x][y] {Some('#')} else if include_empty {Some('_')} else {None}
+    // }
 
-    // returns a list of chars for a column of index i on the Tetrominno
-    pub fn col_chars (&self, x:usize, include_empty: bool) -> Vec<Option<char>> {
-        (0..self.grid[x].len()).map(|y| self.char_at(x, y, include_empty)).collect()
-    }
+    // // returns a list of chars for a column of index i on the Tetrominno
+    // pub fn col_chars (&self, x:usize, include_empty: bool) -> Vec<Option<char>> {
+    //     (0..self.grid[x].len()).map(|y| self.char_at(x, y, include_empty)).collect()
+    // }
 
-    // returns a list of chars for a column of index i on the Tetrominno
-    pub fn row_chars (&self, x:usize, include_empty: bool) -> Vec<Option<char>> {
-        (0..self.grid.len()).map(|y| self.char_at(x, y, include_empty)).collect()
-    }
+    // // returns a list of chars for a column of index i on the Tetrominno
+    // pub fn row_chars (&self, x:usize, include_empty: bool) -> Vec<Option<char>> {
+    //     (0..self.grid.len()).map(|y| self.char_at(x, y, include_empty)).collect()
+    // }
 
-    // returns all Tetromino's chars 
-    pub fn all_chars (&self) -> Vec<Vec<Option<char>>> {
-        (0..self.grid.len()).map(|x| self.col_chars(x, false)).collect()
-    }
+    // // returns all Tetromino's chars 
+    // pub fn all_chars (&self) -> Vec<Vec<Option<char>>> {
+    //     (0..self.grid.len()).map(|x| self.col_chars(x, false)).collect()
+    // }
 
     // returns the Tetrommino as a String 
     pub fn str (&self) -> String {
