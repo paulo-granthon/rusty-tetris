@@ -28,6 +28,7 @@ pub struct RustyTetris {
     pub t:usize,
     pub paused: bool,
     pub mouse_pos: (f32, f32),
+    pub inputmap: Vec::<super::KeyMap>,
 
 }
 
@@ -58,8 +59,12 @@ impl RustyTetris {
             t: 0,
             paused: false,
             mouse_pos: (0.0,0.0),
+            inputmap: vec![],
         }
     }
+
+    // pauses / resumes the game
+    pub fn pause (&mut self) { self.paused = !self.paused }
 
     // resets the game
     pub fn reset(&mut self) {

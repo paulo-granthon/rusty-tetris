@@ -1,5 +1,7 @@
 use super::{RustyTetris, RTColor};
 use super::render::*;
+use super::input_handler::*;
+
 extern crate doryen_rs; use doryen_rs::{DoryenApi, Engine, TextAlign, UpdateEvent};
 
 use crate::DEBUG_MOVEMENT;
@@ -23,6 +25,7 @@ impl Engine for RustyTetris {
 
     // initialize the engine
     fn init(&mut self, api: &mut dyn DoryenApi) {
+        self.register_inputs();
 
         // register colors 
         for color in RTColor::iter() {
@@ -41,27 +44,8 @@ impl Engine for RustyTetris {
 
         self.mouse_pos = input.mouse_pos();
 
-        let input_text = input.text();
-        // if !input_text.is_empty() { println!("{}", input_text); }
+        self.handle_input(input, "game");
 
-        match &input_text as &str { 
-            "q" | "Q" => self.rotate(true),
-            "e" | "E" => self.rotate(false),
-            " " => self.next(),
-            _=> {}
-        };
-
-        // if input.key_pressed("q") { self.rotate(true) }
-        // if input.key_pressed("e") { self.rotate(false) }
-
-        if input.key("Backspace") {
-            self.reset();
-        }
-
-        if input.key_pressed("Enter") {
-            println!("Paused");
-            self.paused = !self.paused;
-        }
 
         if self.paused { return None }
 
