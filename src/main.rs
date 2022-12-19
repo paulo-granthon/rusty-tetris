@@ -12,9 +12,6 @@ const CONSOLE_WIDTH: u32 = 80;
 const CONSOLE_HEIGHT: u32 = 80;
 const MAX_FPS: usize = 60;
 
-// slows down the update rate of the game 
-const UPDATE_COOLDOWN: usize = 6;
-
 fn main() {
     let mut app = App::new(AppOptions {
         console_width: CONSOLE_WIDTH,

@@ -4,7 +4,10 @@ use super::input_handler::*;
 
 extern crate doryen_rs; use doryen_rs::{DoryenApi, Engine, TextAlign, UpdateEvent};
 
-use crate::DEBUG_MOVEMENT;
+// How many cooldown frames between each update 
+const UPDATE_COOLDOWN: usize = 20;
+
+// use crate::DEBUG_MOVEMENT;
 use crate::DEBUG_RENDER;
 use crate::CONSOLE_WIDTH;
 use crate::PLAYFIELD_WIDTH;
@@ -50,9 +53,9 @@ impl Engine for RustyTetris {
         if self.paused { return None }
 
         let update_cooldown = 
-            if self.move_intent.1 < 0 { self.tick_delay * (self.move_intent.1 * -1) as usize } 
-            else if self.move_intent.1 > 0 { self.tick_delay / self.move_intent.1 as usize } 
-            else { self.tick_delay };
+            if self.move_intent.1 < 0 { UPDATE_COOLDOWN * (self.move_intent.1 * -1) as usize } 
+            else if self.move_intent.1 > 0 { UPDATE_COOLDOWN / self.move_intent.1 as usize } 
+            else { UPDATE_COOLDOWN };
 
         // println!("{} -> {}", self.move_intent.1, update_cooldown);
         if self.t < update_cooldown {
@@ -62,39 +65,11 @@ impl Engine for RustyTetris {
         }
         self.t = 0;
 
-        self.move_intent = (
-
-            // // move left/right
-            if      input.key("ArrowLeft")  { (self.move_intent.0 - 1).max(-1) } 
-            else if input.key("ArrowRight") { (self.move_intent.0 + 1).min( 1) } 
-            else { 0 },
-
-            // automatic down movement if not debugging
-            if !DEBUG_MOVEMENT {
-
-                // auto move down + speedup/slowdown
-                if      input.key("ArrowUp")   { (self.move_intent.1 - 1).max(-4) } 
-                else if input.key("ArrowDown") { (self.move_intent.1 + 1).min( 4) } 
-                else {
-                    let mut new_move_intent_y = self.move_intent.1 - self.move_intent.1.signum();
-                    if new_move_intent_y == 0 { new_move_intent_y = 1; }
-                    new_move_intent_y
-                }
-            } 
-            
-            // manual move if debug
-            else {
-
-                // manual move up/down
-                if      input.key("ArrowUp")   { -1  } 
-                else if input.key("ArrowDown") {  1  } 
-                else                           {  0  }
-            }
-        );
+        // self.handle_input(input, "game");
 
         // apply movement to Tetromino
         if self.move_intent.0 != 0 || self.move_intent.1 != 0 {
-            println!("{},{}", self.move_intent.0, self.move_intent.1);
+            // println!("{},{}", self.move_intent.0, self.move_intent.1);
 
             // apply the horizontal movement queued up by the player
             self.move_x();
@@ -106,16 +81,18 @@ impl Engine for RustyTetris {
                 // add the Tetromino the the playfield
                 self.add_to_playfield();
 
-                let mut next_playfield = self.check_rows();
+                // let mut next_playfield = self.check_rows();
                 let mut score_sum = 0;
+
+                // TODO: this is where some sort of animation comes into play
 
                 // repeat as long as there's a next playfield
                 loop {
-                    match next_playfield {
+                    match self.check_rows() {
                         Some(playfield) => {
                             self.set_playfield(playfield);
                             // println!("new playfield");
-                            next_playfield = self.check_rows();
+                            // next_playfield = self.check_rows();
                             score_sum += 1;
                         },
                         None => {
@@ -123,7 +100,6 @@ impl Engine for RustyTetris {
                         }
                     }
 
-                    // TODO: this is where some sort of animation comes into play
 
                     // replace the playfield with the next one
                     // self.set_playfield(next_playfield);
@@ -131,16 +107,18 @@ impl Engine for RustyTetris {
                     // println!("new playfield");
                     
                 }
-                    
-                self.score += score_sum * score_sum * 10;
-                println!("score: {}", self.score);
+
+                if score_sum != 0 {
+                    self.score += score_sum * score_sum * 10;
+                    println!("score: {} (+{})", self.score, score_sum * score_sum * 10);
+                }                    
 
                 // lose control over the Tetromino and get the next one
                 self.next()
             }
 
             // reset the move_intent after fulfilling both movement axes
-            // self.reset_move_intent();
+            self.reset_move_intent();
         } 
 
         // capture the screen

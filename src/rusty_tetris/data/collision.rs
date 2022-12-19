@@ -1,4 +1,4 @@
-use super::rtcolor::RTColor;
+use super::rt_color::RTColor;
 
 
 // returns true if the given popsition is outside the range (0..size.x, 0..size.y)

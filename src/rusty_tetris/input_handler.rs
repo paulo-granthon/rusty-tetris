@@ -73,8 +73,16 @@ impl InputHandler for RustyTetris {
         self.inputmap = vec![
 
             // inputs while in game
-            KeyMap::new("KeyQ".to_owned(), "game".to_owned(), None ),
-            KeyMap::new("KeyE".to_owned(), "game".to_owned(), None ),
+            KeyMap::new("KeyQ".to_owned(),          "game".to_owned(), None ),
+            KeyMap::new("KeyE".to_owned(),          "game".to_owned(), None ),
+            KeyMap::new("BackSpace".to_owned(),     "game".to_owned(), None ),
+            KeyMap::new("Enter".to_owned(),         "game".to_owned(), None ),
+            // KeyMap::new("ArrowUp".to_owned(),       "game".to_owned(), Some(0) ),
+            KeyMap::new("ArrowDown".to_owned(),     "game".to_owned(), Some(0) ),
+
+            KeyMap::new("ArrowLeft".to_owned(),     "game".to_owned(), Some(6) ),
+            KeyMap::new("ArrowRight".to_owned(),    "game".to_owned(), Some(6) ),
+
         ];
 
     }
@@ -90,13 +98,18 @@ impl InputHandler for RustyTetris {
             // if trigger returns true, match the key to call the function
             if self.inputmap[key].trigger(input).to_owned() { match self.inputmap[key].key_text.as_str() {
 
-                // 
-                "KeyQ"      => self.rotate(true),
-                "KeyE"      => self.rotate(false),
-                "BackSpace" => self.reset(),
-                "Enter"     => self.pause(),
-                
-                
+                // before paused check game inputs
+                "KeyQ"          => self.rotate(true),
+                "KeyE"          => self.rotate(false),
+                "BackSpace"     => self.reset(),
+                "Enter"         => self.pause(),
+
+                // after pause check gae inputs
+                "ArrowLeft"     => self.intent_x(-1),
+                "ArrowRight"    => self.intent_x(1),
+                "ArrowUp"       => self.intent_y(-1),
+                "ArrowDown"     => self.intent_y(1),
+
                 // no key ? probably a overlook
                 _=> println!("{}.handle_input: Key '{}' is registered but no mapped to anything!", std::any::type_name::<Self>(), self.inputmap[key].key_text)
             }}

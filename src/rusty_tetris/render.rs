@@ -1,7 +1,7 @@
 extern crate doryen_rs; use doryen_rs::Console;
 
 use crate::data::tetromino::Tetromino;
-use crate::data::rtcolor::RTColor;
+use crate::data::rt_color::RTColor;
 
 // renders a playfield
 pub fn render_playfield<'a, const W: usize, const H: usize> (playfield_con: Option<&'a mut Console>, playfield: &[[Option<RTColor>; H]; W], size:(u32, u32), scale: i32) -> Option<&'a mut Console> {

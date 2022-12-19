@@ -1,12 +1,14 @@
 extern crate doryen_rs; use doryen_rs::Console;
 use crate::data::*;
+use crate::Bag;
 
-use crate::UPDATE_COOLDOWN;
-// use crate::DEBUG_MOVEMENT;
+use crate::DEBUG_MOVEMENT;
+
+use super::HasBag;
 
 // defines the values that the move_intent resets to
-// pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
-// pub const RESET_MOVE_INTENT_AUTO: (i8, i8) = (0, 1);
+pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
+pub const RESET_MOVE_INTENT_AUTO: (i8, i8) = (0, 1);
 
 // sizes of the playfield array
 pub const PLAYFIELD_WIDTH: u8 = 10;
@@ -19,12 +21,12 @@ pub const BLOCK_SCALE: u8 = 2;
 pub struct RustyTetris {
     pub playfield: [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize],
     pub playfield_con: Option<Console>,
+    pub some_bag: Option<Bag>,
     pub cur_tetromino: Option<Tetromino>,
     pub cur_con: Option<Console>,
     pub cur_pos: (i8, i8),
     pub move_intent: (i8, i8),
     pub score: i32,
-    pub tick_delay:usize,
     pub t:usize,
     pub paused: bool,
     pub mouse_pos: (f32, f32),
@@ -50,12 +52,12 @@ impl RustyTetris {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
+            some_bag: None,
             cur_tetromino: Default::default(),
             cur_con: None,
             cur_pos: (0, 0),
             move_intent: (0, 1),
             score: 0,
-            tick_delay: UPDATE_COOLDOWN,
             t: 0,
             paused: false,
             mouse_pos: (0.0,0.0),
@@ -75,7 +77,7 @@ impl RustyTetris {
 
     // define the next Tetromino of the match
     pub fn next (&mut self) {
-        let t = database::random();
+        let t = self.bag_next();
         // let t = Tetromino { grid: vec![vec![true;1];1], color: RTColor::Green };
         let size = (t.grid[0].len() as u32, t.grid.len() as u32);
         self.cur_tetromino = Some(t);
@@ -158,16 +160,22 @@ impl RustyTetris {
         }
     }
 
+    // declare the intent of moving x by 'dir' in the next move_x call
+    pub fn intent_x (&mut self, dir: i8) { self.move_intent.0 = (self.move_intent.0 + dir).min(1).max(-1) }
+
     // calls move_cur to move horizontally
     pub fn move_x (&mut self) -> bool { self._move_x(self.move_intent.0) }
     fn _move_x (&mut self, dir: i8) -> bool { self.move_cur((dir, 0)) }
 
+    // declare the intent of moving y by 'dir' in the next move_y call
+    pub fn intent_y (&mut self, dir: i8) { self.move_intent.1 = (self.move_intent.1 + dir).min(4).max(-4) }
+
     // calls move_cur to move vertically
-    pub fn move_y (&mut self) -> bool { self._move_y(self.move_intent.1.signum()) }
+    pub fn move_y (&mut self) -> bool { self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()}) }
     fn _move_y (&mut self, dir: i8) -> bool { self.move_cur((0, dir)) }
 
     // resets the current move_intent
-    // pub fn reset_move_intent (&mut self) { self.move_intent = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL } else { RESET_MOVE_INTENT_AUTO }}
+    pub fn reset_move_intent (&mut self) { self.move_intent = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL } else { RESET_MOVE_INTENT_AUTO }}
 
     // adds the current Tetromino to the playfield as solid blocks
     pub fn add_to_playfield (&mut self) {

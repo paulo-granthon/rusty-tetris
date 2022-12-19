@@ -1,15 +1,17 @@
 use crate::tetromino::*;
 // use std::slice::Iter;
-use Tetrominos::*;
+use TetrominoID::*;
 
-const COUNT: usize = 7;
+pub const COUNT: usize = 7;
 
 // defines the available Tetrominos
-enum Tetrominos { I, J, L, O, S, Z, T }
-impl Tetrominos {
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum TetrominoID { I, J, L, O, S, Z, T }
+impl TetrominoID {
 
     // Returns all Tetrominos
-    pub fn all() -> [Tetrominos; COUNT] {
+    pub fn all() -> [TetrominoID; COUNT] {
         [I, J, L, O, S, Z, T]
     }
 
@@ -25,37 +27,37 @@ impl Tetrominos {
 
         // returns a Tetromino corresponding to the enum
         match self {
-            Tetrominos::I => Tetromino::from_array([
+            I => Tetromino::from_array([
                 [false, false, false, false],
                 [false, false, false, false],
                 [true,  true,  true,  true],
                 [false, false, false, false],
             ], Cyan),
-            Tetrominos::J => Tetromino::from_array([
+            J => Tetromino::from_array([
                 [false, false, false],
                 [true,  true,  true ],
                 [false, false, true ],
             ], Blue),
-            Tetrominos::L => Tetromino::from_array([
+            L => Tetromino::from_array([
                 [false, false, true ],
                 [true,  true,  true ],
                 [false, false, false],
             ], Orange),
-            Tetrominos::O => Tetromino::from_array([
+            O => Tetromino::from_array([
                 [true, true],
                 [true, true],
             ], Yellow),
-            Tetrominos::S => Tetromino::from_array([
+            S => Tetromino::from_array([
                 [false, true,  false],
                 [false, true,  true ],
                 [false, false, true ],
             ], Green),
-            Tetrominos::Z => Tetromino::from_array([
+            Z => Tetromino::from_array([
                 [false, false, true ],
                 [false, true,  true ],
                 [false, true,  false],
             ], Magenta),  
-            Tetrominos::T => Tetromino::from_array([
+            T => Tetromino::from_array([
                 [false, true, false],
                 [true,  true, false],
                 [false, true, false],
@@ -65,8 +67,13 @@ impl Tetrominos {
     }
 }
 
-// returns a random Tetromino
-pub fn random () -> Tetromino {
+// returns a random Tetromino id
+pub fn random_enum () -> TetrominoID {
     use rand::Rng;
-    Tetrominos::all()[rand::thread_rng().gen_range(0..COUNT)].get()
+    TetrominoID::all()[rand::thread_rng().gen_range(0..COUNT)]
 }
+
+// returns a random Tetromino
+// pub fn random () -> Tetromino {
+//     random_enum().get()
+// }

@@ -1,4 +1,4 @@
-use super::{generics::*, rtcolor::RTColor};
+use super::{generics::*, rt_color::RTColor};
 
 // a Tetris piece
 #[derive(Clone)]
