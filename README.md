@@ -16,3 +16,5 @@ doryen-rs - https://github.com/jice-nospam/doryen-rs
 
 >![alt text](https://static.wikia.nocookie.net/tetrisconcept/images/3/3d/SRS-pieces.png/revision/latest?cb=20060626173148 "visual representation of pivot points of Tetrominos while rotating")
 </details>
+
+[Random Generator](https://tetris.fandom.com/wiki/Random_Generator) - Pseudo random Tetromino sequence  
