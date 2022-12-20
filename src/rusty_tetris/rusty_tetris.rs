@@ -5,6 +5,7 @@ use crate::Bag;
 use crate::DEBUG_MOVEMENT;
 
 use super::HasBag;
+use super::routine_handler::RoutineHandler;
 // use super::HasBag;
 
 // defines the values that the move_intent resets to
@@ -71,53 +72,6 @@ impl RustyTetris {
     // pauses / resumes the game
     pub fn pause (&mut self) { self.paused = !self.paused }
 
-    pub fn update(&mut self) {
-        if self.paused { return; }
-
-        // apply movement to Tetromino
-        if self.move_intent.0 != 0 || self.move_intent.1 != 0 {
-
-            // apply the horizontal movement queued up by the player
-            self.move_x();
-
-            // apply the vertical movement; 
-            // true: Tetromino collided with something
-            if self.move_y() {
-
-                // add the Tetromino the the playfield
-                self.add_to_playfield();
-
-                // let mut next_playfield = self.check_rows();
-                let mut score_sum = 0;
-
-                // TODO: this is where some sort of animation comes into play
-
-                // repeat as long as there's a next playfield
-                loop {
-                    match self.check_rows() {
-                        Some(playfield) => {
-                            self.set_playfield(playfield);
-                            score_sum += 1;
-                        },
-                        None => break
-                    }                    
-                }
-
-                if score_sum != 0 {
-                    self.score += score_sum * score_sum * 10;
-                    println!("score: {} (+{})", self.score, score_sum * score_sum * 10);
-                }                    
-
-                // lose control over the Tetromino and get the next one
-                self.next()
-            }
-
-            // reset the move_intent after fulfilling both movement axes
-            self.reset_move_intent();
-        } 
-
-    }
-
     // resets the game
     pub fn reset(&mut self) {
         self.playfield = Self::create_playfield();
@@ -135,21 +89,25 @@ impl RustyTetris {
         self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0)
     }
 
+    pub fn get_skip_steps (&self, t: &Tetromino) -> i8 {
+        let mut steps = 0;
+        loop {
+            let simulated = simulate_move_y(&t, (self.cur_pos.0, self.cur_pos.1 + steps), (0, 1), &self.playfield);
+            // println!("{} steps | simulated: {:?}", steps, simulated);
+            if simulated.2 != 0 || simulated.3 != 0 { break steps }
+            steps += 1;
+        }
+    }
+
     // skips to the next tetromino, finishing the trajectory of the current
     pub fn skip (&mut self) {
         match &self.cur_tetromino {
             None => {
-                println!("RustyTetris.skip() -- NO CURRENT TETROMINO (XD????)");
-                return;
+                println!("RustyTetris.skip() -- NO CURRENT TETROMINO (XD????)")
             },
             Some (t) => {
-                let mut steps = 0;
-                self.move_cur((0, loop {
-                    let simulated = simulate_move_y(&t, (self.cur_pos.0, self.cur_pos.1 + steps), (0, 1), &self.playfield);
-                    // println!("{} steps | simulated: {:?}", steps, simulated);
-                    if simulated.2 != 0 || simulated.3 != 0 { break steps }
-                    steps += 1;
-                }));
+                self.move_cur((0, self.get_skip_steps(&t)));
+                self.reset_timer("move_y", Some("not_paused"));
             }
         }
     }
@@ -210,8 +168,15 @@ impl RustyTetris {
     // calls move_cur to move horizontally
     fn _move_x (&mut self, dir: i8) { self.move_cur((dir, 0)); }
     pub fn move_x (&mut self) {
+
+        // if no intent to move x, cancel
         if self.move_intent.1 == 0 { return }
-        self._move_x(self.move_intent.0)
+
+        // apply the x move
+        self._move_x(self.move_intent.0);
+
+        // reset x intent
+        self.move_intent.0 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.0 } else { RESET_MOVE_INTENT_AUTO.0 };
     }
 
     // declare the intent of moving y by 'dir' in the next move_y call
@@ -219,13 +184,74 @@ impl RustyTetris {
 
     // calls move_cur to move vertically
     fn _move_y (&mut self, dir: i8) -> bool { self.move_cur((0, dir)) }
-    pub fn move_y (&mut self) -> bool {
-        if self.move_intent.1 == 0 { return false }
-        self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()})
-    }
+    pub fn move_y (&mut self) {
 
-    // resets the current move_intent
-    pub fn reset_move_intent (&mut self) { self.move_intent = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL } else { RESET_MOVE_INTENT_AUTO }}
+        // let update_cooldown = 
+        //     if self.move_intent.1 < 0 { 30 * self.move_intent.1.abs() as usize } 
+        //     else if self.move_intent.1 > 0 { 30 / self.move_intent.1 as usize } 
+        //     else { 30 };
+
+        // // println!("{} -> {}", self.move_intent.1, update_cooldown);
+        // if self.t < update_cooldown {
+        //     // println!("{}/{}", self.t, self.tick_delay);
+        //     self.t += 1;
+        //     return;
+        // }
+
+        // self.t = 0;
+
+        // cancel if no intent to move y
+        if self.move_intent.1 == 0 { return; }
+
+        // apply the y move
+        if !self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()}) {
+
+            // reset intent after move
+            self.move_intent.1 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.1 } else { RESET_MOVE_INTENT_AUTO.1 };
+            return;
+        }
+
+        // add the Tetromino the the playfield
+        self.add_to_playfield();
+
+        // let mut next_playfield = self.check_rows();
+        let mut score_sum = 0;
+
+        // enter dynamic loop
+        loop {
+
+            // check rows and match accordingly
+            match self.check_rows() {
+
+                // one line was cleared this iteration, new playfield returned
+                Some(playfield) => {
+
+                    // TODO: this is where some sort of animation comes into play
+
+                    // replace the playfield
+                    self.set_playfield(playfield);
+
+                    // increase the score by 1
+                    score_sum += 1;
+                },
+
+                // no lines cleared, exit loop
+                None => break
+            }                    
+        }
+
+        // if score is not 0
+        if score_sum != 0 {
+
+            // calculate and add to score
+            self.score += score_sum * score_sum * 10;
+            println!("score: {} (+{})", self.score, score_sum * score_sum * 10);
+        }                    
+
+        // lose control over the Tetromino and get the next one
+        self.next();
+
+    }
 
     // adds the current Tetromino to the playfield as solid blocks
     pub fn add_to_playfield (&mut self) {

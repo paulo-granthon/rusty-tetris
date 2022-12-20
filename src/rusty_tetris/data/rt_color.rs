@@ -37,10 +37,14 @@ impl RTColor {
 
 pub trait Alpha {
     fn no_alpha(&self) -> Self;
+    fn alpha(&self, a: u8) -> Self;
 }
 
 impl Alpha for (u8, u8, u8, u8) {
     fn no_alpha(&self) -> Self {
         (self.0, self.1, self.2, 0)
+    }
+    fn alpha(&self, a: u8) -> Self {
+        (self.0, self.1, self.2, a)
     }
 }

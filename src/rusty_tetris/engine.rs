@@ -3,26 +3,7 @@ use super::routine_handler::*;
 use super::input_handler::*;
 use super::render::*;
 
-extern crate doryen_rs; use doryen_rs::{DoryenApi, Engine, TextAlign, UpdateEvent};
-
-// How many cooldown frames between each update 
-// const UPDATE_COOLDOWN: usize = 20;
-
-// use crate::DEBUG_MOVEMENT;
-use crate::DEBUG_RENDER;
-use crate::CONSOLE_WIDTH;
-use crate::PLAYFIELD_WIDTH;
-use crate::CONSOLE_HEIGHT;
-use crate::PLAYFIELD_HEIGHT;
-use crate::BLOCK_SCALE;
-
-// render position of the playfield
-const R_PLAYFIELD_X: i32 = CONSOLE_WIDTH as i32 / 2 - (PLAYFIELD_WIDTH * BLOCK_SCALE) as i32 / 2 - 1;
-const R_PLAYFIELD_Y: i32 = CONSOLE_HEIGHT as i32 / 2 - (PLAYFIELD_HEIGHT * BLOCK_SCALE) as i32 / 2 - 1;
-
-// render sizes of the playfield
-const R_PLAYFIELD_SIZE_X: u32 = (PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2;
-const R_PLAYFIELD_SIZE_Y: u32 = (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2;
+extern crate doryen_rs; use doryen_rs::{DoryenApi, Engine, UpdateEvent};
 
 // Doryen engine implementation for RustyTetris
 impl Engine for RustyTetris {
@@ -51,20 +32,9 @@ impl Engine for RustyTetris {
 
         self.handle_input(input, "game");
 
-        self.handle_routines();
-        
-        // let update_cooldown = 
-        //     if self.move_intent.1 < 0 { UPDATE_COOLDOWN * self.move_intent.1.abs() as usize } 
-        //     else if self.move_intent.1 > 0 { UPDATE_COOLDOWN / self.move_intent.1 as usize } 
-        //     else { UPDATE_COOLDOWN };
+        if self.paused { return None }
 
-        // // println!("{} -> {}", self.move_intent.1, update_cooldown);
-        // if self.t < update_cooldown {
-        //     // println!("{}/{}", self.t, self.tick_delay);
-        //     self.t += 1;
-        //     return None;
-        // }
-        // self.t = 0;
+        self.handle_routines("not_paused");
 
         // self.handle_input(input, "game");
 
@@ -86,56 +56,7 @@ impl Engine for RustyTetris {
         let con = api.con();
         con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
 
-        match render_playfield(self.playfield_con.as_mut(), &self.playfield, (R_PLAYFIELD_SIZE_X, R_PLAYFIELD_SIZE_Y), BLOCK_SCALE as i32) {
-            Some(pfcon) => pfcon.blit(
-                R_PLAYFIELD_X,
-                R_PLAYFIELD_Y,
-                con,
-                1.0,
-                1.0,
-                None
-            ),
-            None => {}
-        }
-
-        // get a reference to the current position of the Tetromino
-        let cur_pos = self.cur_pos;
-
-        // render the current Tetromino
-        match render_tetromino(self.cur_con.as_mut(), &self.cur_tetromino, BLOCK_SCALE as i32) {
-            Some(cur_con) => cur_con.blit(
-                (CONSOLE_WIDTH as i32 / 2) + (cur_pos.0 as i32 - (PLAYFIELD_WIDTH as i32 / 2)) * BLOCK_SCALE as i32,
-                (CONSOLE_HEIGHT as i32 / 2) + (cur_pos.1 as i32 - (PLAYFIELD_HEIGHT as i32 / 2)) * BLOCK_SCALE as i32,
-                con, 
-                1.0,
-                1.0, 
-                if DEBUG_RENDER {None} else {Some(RTColor::White.value().1)}
-            ),
-            None => {}
-        }
-
-        let grid_mouse_pos = (
-            (((self.mouse_pos.0.floor() - R_PLAYFIELD_X as f32) / BLOCK_SCALE as f32).floor() as usize).min(self.playfield.len()-1).max(0),
-            (((self.mouse_pos.1.floor() - R_PLAYFIELD_Y as f32) / BLOCK_SCALE as f32).floor() as usize).min(self.playfield[0].len()-1).max(0)
-        );
-
-        con.print_color(
-            (CONSOLE_WIDTH / 2) as i32,
-            (CONSOLE_HEIGHT - 3) as i32,
-            &format!(
-                "#[white]{}: #[green]{}, {} #[white]| #[blue]{}, {}",
-                if (self.mouse_pos.0 as i32) < R_PLAYFIELD_X || ((self.mouse_pos.0 as i32) >= R_PLAYFIELD_X + R_PLAYFIELD_SIZE_X as i32) || 
-                   (self.mouse_pos.1 as i32) < R_PLAYFIELD_Y || (self.mouse_pos.1 as i32) >= R_PLAYFIELD_Y + R_PLAYFIELD_SIZE_Y as i32 { "oob"
-                } else { match &self.playfield[grid_mouse_pos.0][grid_mouse_pos.1] {
-                    Some(color) => &color.value().0,
-                    None => "none"
-                }},
-                grid_mouse_pos.0, grid_mouse_pos.1,
-                self.mouse_pos.0.floor() as i32, self.mouse_pos.1.floor() as i32,
-            ),
-            TextAlign::Center,
-            None,
-        );
+        self.rt_render(con);
 
         // match &self.cur_con {
         //     Some(x) => x.blit(self.cur_pos.0.into(), self.cur_pos.1.into(), con, 1.0, 1.0, None),
@@ -181,14 +102,14 @@ impl Engine for RustyTetris {
         //     self.mouse_pos.1 as i32,
         //     (255, 255, 255, 255),
         // );
-        render_block(
-            con, 
-            self.mouse_pos.0 as i32 / BLOCK_SCALE as i32, 
-            self.mouse_pos.1 as i32 / BLOCK_SCALE as i32, 
-            RTColor::White.value().1, 
-            BLOCK_SCALE as i32, 
-            0, 0
-        );
+        // render_block(
+        //     con, 
+        //     self.mouse_pos.0 as i32 / BLOCK_SCALE as i32, 
+        //     self.mouse_pos.1 as i32 / BLOCK_SCALE as i32, 
+        //     RTColor::White.value().1, 
+        //     BLOCK_SCALE as i32, 
+        //     0, 0
+        // );
     }
 }
 

@@ -93,12 +93,12 @@ impl InputHandler for RustyTetris {
     fn handle_input(&mut self, input: &mut dyn InputApi, category: &str) {
 
         // loop through all registered inputs
-        for key in 0..self.inputmap.len() {
+        for index in 0..self.inputmap.len() {
 
-            if self.inputmap[key].category != category { continue; }
+            if self.inputmap[index].category != category { continue; }
 
             // if trigger returns true, match the key to call the function
-            if self.inputmap[key].trigger(input).to_owned() { match self.inputmap[key].key_text.as_str() {
+            if self.inputmap[index].trigger(input).to_owned() { match self.inputmap[index].key_text.as_str() {
 
                 // before paused check game inputs
                 "KeyQ"          => self.rotate(true),
@@ -114,7 +114,7 @@ impl InputHandler for RustyTetris {
                 "Space"         => self.skip(),
 
                 // no key ? probably a overlook
-                _=> println!("{}.handle_input: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.inputmap[key].key_text)
+                _=> println!("{}.handle_input: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.inputmap[index].key_text)
             }}
         }
 
