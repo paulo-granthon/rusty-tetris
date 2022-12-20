@@ -9,26 +9,37 @@ pub struct Bag {
 }
 
 impl Bag {
-    pub fn new () -> Self {
-        let mut sequence: Vec<TetrominoID> = vec![];
-        for _ in 0..COUNT {
+    fn fill_sequence (sequence: &mut Vec<TetrominoID>) -> Vec<TetrominoID> {
+        while sequence.len() < COUNT {
             let mut tid = random_enum();
             while contains(&sequence, &tid) {
                 tid = random_enum();
             }
             sequence.push(tid);
         }
-        println!("New bag: {:?}", sequence);
+        sequence.to_owned()
+    }
+    fn sequence_to_array<const L: usize>(sequence: Vec<TetrominoID>) -> [TetrominoID; L] {
+        sequence.try_into().unwrap_or_else(|_| panic!("src\\rusty_tetris\\rt_random.Bag::new -- Error"))
+    }
+    pub fn from (sequence: Vec<TetrominoID>) -> Self {
         Self {
-            sequence: sequence.try_into().unwrap_or_else(|_| panic!("src\\rusty_tetris\\rt_random.Bag::new -- Error")),
+            sequence: Self::sequence_to_array(Self::fill_sequence(&mut sequence.to_owned())),
             index: 0 
         }
     }
-    pub fn next(&mut self) -> Option<Tetromino> {
-        if self.index >= self.sequence.len() { return None }
+    pub fn new () -> Self {
+        Self::from(vec![])
+    }
+    pub fn next(&mut self) -> Tetromino {
+        let seq_len = self.sequence.len();
+        if self.index >= seq_len - 1 {
+            self.sequence = Self::sequence_to_array(Self::fill_sequence(&mut vec![self.sequence[seq_len - 1]]));
+            self.index = 0;
+        }
         let tetromino: Tetromino = self.sequence[self.index].get();
         self.index += 1;
-        Some(tetromino)
+        tetromino
     }
 }
 
@@ -38,22 +49,17 @@ fn contains(sequence: &Vec<TetrominoID>, tid: &TetrominoID) -> bool {
     }
     false
 }
-
 pub trait HasBag {
     fn bag_next(&mut self) -> Tetromino;
 }
 
 impl HasBag for RustyTetris {
     fn bag_next(&mut self) -> Tetromino {
-        loop {
-            match &mut self.some_bag {
-                Some(bag) => {
-                    match &mut bag.next() {
-                        Some(tetromino) => return tetromino.to_owned(),
-                        None => self.some_bag = Some(Bag::new())
-                    }
-                }
-                None => self.some_bag = Some(Bag::new())
+        match &mut self.bag_queue {
+            Some(bag) => bag.next(),
+            None => {
+                self.bag_queue = Some(Bag::new());
+                self.bag_next()
             }
         }
     }

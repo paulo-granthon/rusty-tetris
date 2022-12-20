@@ -22,7 +22,7 @@ pub const BLOCK_SCALE: u8 = 2;
 pub struct RustyTetris {
     pub playfield: [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize],
     pub playfield_con: Option<Console>,
-    pub some_bag: Option<Bag>,
+    pub bag_queue: Option<Bag>,
     pub cur_tetromino: Option<Tetromino>,
     pub cur_con: Option<Console>,
     pub cur_pos: (i8, i8),
@@ -54,7 +54,7 @@ impl RustyTetris {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
-            some_bag: None,
+            bag_queue: None,
             cur_tetromino: Default::default(),
             cur_con: None,
             cur_pos: (0, 0),
