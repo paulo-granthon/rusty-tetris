@@ -5,6 +5,7 @@ use crate::Bag;
 use crate::DEBUG_MOVEMENT;
 
 use super::HasBag;
+// use super::HasBag;
 
 // defines the values that the move_intent resets to
 pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
@@ -31,6 +32,7 @@ pub struct RustyTetris {
     pub paused: bool,
     pub mouse_pos: (f32, f32),
     pub inputmap: Vec::<super::KeyMap>,
+    pub routines: Vec::<super::Routine>,
 
 }
 
@@ -62,11 +64,59 @@ impl RustyTetris {
             paused: false,
             mouse_pos: (0.0,0.0),
             inputmap: vec![],
+            routines: vec![],
         }
     }
 
     // pauses / resumes the game
     pub fn pause (&mut self) { self.paused = !self.paused }
+
+    pub fn update(&mut self) {
+        if self.paused { return; }
+
+        // apply movement to Tetromino
+        if self.move_intent.0 != 0 || self.move_intent.1 != 0 {
+
+            // apply the horizontal movement queued up by the player
+            self.move_x();
+
+            // apply the vertical movement; 
+            // true: Tetromino collided with something
+            if self.move_y() {
+
+                // add the Tetromino the the playfield
+                self.add_to_playfield();
+
+                // let mut next_playfield = self.check_rows();
+                let mut score_sum = 0;
+
+                // TODO: this is where some sort of animation comes into play
+
+                // repeat as long as there's a next playfield
+                loop {
+                    match self.check_rows() {
+                        Some(playfield) => {
+                            self.set_playfield(playfield);
+                            score_sum += 1;
+                        },
+                        None => break
+                    }                    
+                }
+
+                if score_sum != 0 {
+                    self.score += score_sum * score_sum * 10;
+                    println!("score: {} (+{})", self.score, score_sum * score_sum * 10);
+                }                    
+
+                // lose control over the Tetromino and get the next one
+                self.next()
+            }
+
+            // reset the move_intent after fulfilling both movement axes
+            self.reset_move_intent();
+        } 
+
+    }
 
     // resets the game
     pub fn reset(&mut self) {
@@ -85,73 +135,67 @@ impl RustyTetris {
         self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0)
     }
 
-    // rotates the current Tetromino
-    pub fn rotate (&mut self, clockwise: bool) {
-        match &mut self.cur_tetromino {
-            Some(t) => {
-                let rotated = t.get_rotated(clockwise).to_owned();
-                t.set_grid(rotated);
+    // skips to the next tetromino, finishing the trajectory of the current
+    pub fn skip (&mut self) {
+        match &self.cur_tetromino {
+            None => {
+                println!("RustyTetris.skip() -- NO CURRENT TETROMINO (XD????)");
+                return;
             },
-            None => {}
+            Some (t) => {
+                let mut steps = 0;
+                self.move_cur((0, loop {
+                    let simulated = simulate_move_y(&t, (self.cur_pos.0, self.cur_pos.1 + steps), (0, 1), &self.playfield);
+                    // println!("{} steps | simulated: {:?}", steps, simulated);
+                    if simulated.2 != 0 || simulated.3 != 0 { break steps }
+                    steps += 1;
+                }));
+            }
         }
-        let correction = get_rot_correction(&self.cur_tetromino.as_ref().unwrap().grid, self.cur_pos, &self.playfield);
-        if correction != 0 { self._move_x(correction); }
     }
 
-    // moves the current Tetromino
+    // rotates the current Tetromino
+    pub fn rotate (&mut self, clockwise: bool) {
+        
+        // match current tetromino
+        match &mut self.cur_tetromino {
+
+            // some tetromino
+            Some(t) => {
+
+                // get the rotated grid
+                let rotated = t.get_rotated(clockwise).to_owned();
+
+                // get the correction value 
+                let correction = get_rot_correction(&rotated, self.cur_pos, &self.playfield);
+
+                // replace the tetromino's grid
+                t.set_grid(rotated);
+
+                // if correction is not none, move the tetromino
+                if correction != 0 { self._move_x(correction); }
+        
+            },
+            
+            // no current
+            None => {}
+        }
+    }
+
+    // moves the current Tetromino. Returns true when losing controll of cur_tetromino
     fn move_cur (&mut self, dir: (i8, i8)) -> bool {
 
         // check if Some current Tetromino
         match &self.cur_tetromino {
             Some(tetromino) => {  
-                
-                let width = tetromino.grid[0].len();
-                let height = tetromino.grid.len();
-                
-                // calculate the new position of the Tetromino by clamping it a bit over the palyfield
-                // since collision is defined by the Tetromino's grid instead of bounding box
-                let new_pos = clamp_boundaries(
-                    (self.cur_pos.0 + dir.0, self.cur_pos.1 + dir.1),
-                    (-(width as i8), -(height as i8)),
-                    (PLAYFIELD_WIDTH as i8, PLAYFIELD_HEIGHT as i8),
-                );
 
-                // calculate the correcttion value to further clamp the Tetromino inside the playfield
-                let mut correction: (i8, i8) = get_correction(
-                    &tetromino.grid, 
-                    new_pos, 
-                    dir, 
-                    (PLAYFIELD_WIDTH as i8, PLAYFIELD_HEIGHT as i8)
-                );
-
-                // calculate the correction value in regards to collision with other Tetrominos on the playfield
-                let collision: (i8, i8) = get_collision(
-                    &tetromino.grid, 
-                    self.cur_pos, 
-                    dir, 
-                    &self.playfield
-                );
-
-                // // debugging :D
-                // if correction.0 != 0 || correction.1 != 0 || collision.0 != 0 || collision.1 != 0{
-                //     println!("{}, {}", &self.playfield.len(), &self.playfield[1].len());
-                //     println!("correction: ({}, {})\tcollision: ({}, {})", correction.0, correction.1, collision.0, collision.1);
-                // }
-                
-                // pick the biggest correction as the actual correction that should be applied to the position of the Tetromino
-                correction = (
-                    if collision.0.abs() > correction.0.abs() { collision.0 } else {correction.0 },
-                    if collision.1.abs() > correction.1.abs() { collision.1 } else {correction.1 }
-                );
-
-                // // mode debugging :D
-                // if correction.0 != 0 || correction.1 != 0 { println!("correction result: {}, {}", correction.0, correction.1)}
+                let simulated = simulate_move_y(&tetromino, self.cur_pos, dir, &self.playfield);
 
                 // apply the new position
-                self.cur_pos = (new_pos.0 + correction.0, new_pos.1 + correction.1);
+                self.cur_pos = (simulated.0 + simulated.2, simulated.1 + simulated.3);
 
                 // Tetronimo is still current
-                return correction.1 < 0;
+                return simulated.3 < 0;
 
             }
 
@@ -164,15 +208,21 @@ impl RustyTetris {
     pub fn intent_x (&mut self, dir: i8) { self.move_intent.0 = (self.move_intent.0 + dir).min(1).max(-1) }
 
     // calls move_cur to move horizontally
-    pub fn move_x (&mut self) -> bool { self._move_x(self.move_intent.0) }
-    fn _move_x (&mut self, dir: i8) -> bool { self.move_cur((dir, 0)) }
+    fn _move_x (&mut self, dir: i8) { self.move_cur((dir, 0)); }
+    pub fn move_x (&mut self) {
+        if self.move_intent.1 == 0 { return }
+        self._move_x(self.move_intent.0)
+    }
 
     // declare the intent of moving y by 'dir' in the next move_y call
     pub fn intent_y (&mut self, dir: i8) { self.move_intent.1 = (self.move_intent.1 + dir).min(4).max(-4) }
 
     // calls move_cur to move vertically
-    pub fn move_y (&mut self) -> bool { self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()}) }
     fn _move_y (&mut self, dir: i8) -> bool { self.move_cur((0, dir)) }
+    pub fn move_y (&mut self) -> bool {
+        if self.move_intent.1 == 0 { return false }
+        self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()})
+    }
 
     // resets the current move_intent
     pub fn reset_move_intent (&mut self) { self.move_intent = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL } else { RESET_MOVE_INTENT_AUTO }}

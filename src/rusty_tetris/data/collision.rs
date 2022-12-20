@@ -1,4 +1,5 @@
 use super::rt_color::RTColor;
+use super::tetromino::Tetromino;
 
 
 // returns true if the given popsition is outside the range (0..size.x, 0..size.y)
@@ -9,6 +10,57 @@ pub fn out_of_bounds_axis (v: i8, size: i8) -> i8 { (size - 1 - v).min(0).min(v)
 
 pub fn clamp_boundaries (pos:(i8, i8), start:(i8, i8), end:(i8, i8)) -> (i8, i8) {
     ((pos.0).max(start.0).min(end.0), (pos.1).max(start.1).min(end.1))
+}
+
+// simulates the movement of given tetromino at the given position towards given direction inside given playfield
+pub fn simulate_move_y<const H: usize, const W: usize> (
+    tetromino: &Tetromino, pos: (i8, i8), dir: (i8, i8), playfield: &[[Option<RTColor>; H]; W]
+
+// returns (new_pos.x, new_pos.y, correction.x, correction.y)
+) -> (i8, i8, i8, i8) {
+                
+    let width = tetromino.grid[0].len();
+    let height = tetromino.grid.len();
+    
+    // calculate the new position of the Tetromino by clamping it a bit over the palyfield
+    // since collision is defined by the Tetromino's grid instead of bounding box
+    let new_pos = clamp_boundaries(
+        (pos.0 + dir.0, pos.1 + dir.1),
+        (-(width as i8), -(height as i8)),
+        (W as i8, H as i8),
+    );
+
+    // calculate the correcttion value to further clamp the Tetromino inside the playfield
+    let correction: (i8, i8) = get_correction(
+        &tetromino.grid, 
+        new_pos, 
+        dir, 
+        (W as i8, H as i8)
+    );
+
+    // calculate the correction value in regards to collision with other Tetrominos on the playfield
+    let collision: (i8, i8) = get_collision(
+        &tetromino.grid, 
+        pos, 
+        dir, 
+        playfield
+    );
+
+    // // debugging :D
+    // if correction.0 != 0 || correction.1 != 0 || collision.0 != 0 || collision.1 != 0{
+    //     println!("{}, {}", &self.playfield.len(), &self.playfield[1].len());
+    //     println!("correction: ({}, {})\tcollision: ({}, {})", correction.0, correction.1, collision.0, collision.1);
+    // }
+    
+    // pick the biggest correction as the actual correction that should be applied to the position of the Tetromino
+    (
+        new_pos.0, new_pos.1,
+        if collision.0.abs() > correction.0.abs() { collision.0 } else { correction.0 },
+        if collision.1.abs() > correction.1.abs() { collision.1 } else { correction.1 },
+    )
+
+    // // mode debugging :D
+    // if correction.0 != 0 || correction.1 != 0 { println!("correction result: {}, {}", correction.0, correction.1)}
 }
 
 pub fn get_correction (grid:&Vec<Vec<bool>>, pos:(i8, i8), dir: (i8, i8), max_pos:(i8, i8)) -> (i8, i8) {

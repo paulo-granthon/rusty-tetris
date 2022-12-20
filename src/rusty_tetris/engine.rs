@@ -1,11 +1,12 @@
 use super::{RustyTetris, RTColor};
-use super::render::*;
+use super::routine_handler::*;
 use super::input_handler::*;
+use super::render::*;
 
 extern crate doryen_rs; use doryen_rs::{DoryenApi, Engine, TextAlign, UpdateEvent};
 
 // How many cooldown frames between each update 
-const UPDATE_COOLDOWN: usize = 20;
+// const UPDATE_COOLDOWN: usize = 20;
 
 // use crate::DEBUG_MOVEMENT;
 use crate::DEBUG_RENDER;
@@ -29,6 +30,7 @@ impl Engine for RustyTetris {
     // initialize the engine
     fn init(&mut self, api: &mut dyn DoryenApi) {
         self.register_inputs();
+        self.register_routines();
 
         // register colors 
         for color in RTColor::iter() {
@@ -49,77 +51,22 @@ impl Engine for RustyTetris {
 
         self.handle_input(input, "game");
 
+        self.handle_routines();
+        
+        // let update_cooldown = 
+        //     if self.move_intent.1 < 0 { UPDATE_COOLDOWN * self.move_intent.1.abs() as usize } 
+        //     else if self.move_intent.1 > 0 { UPDATE_COOLDOWN / self.move_intent.1 as usize } 
+        //     else { UPDATE_COOLDOWN };
 
-        if self.paused { return None }
-
-        let update_cooldown = 
-            if self.move_intent.1 < 0 { UPDATE_COOLDOWN * (self.move_intent.1 * -1) as usize } 
-            else if self.move_intent.1 > 0 { UPDATE_COOLDOWN / self.move_intent.1 as usize } 
-            else { UPDATE_COOLDOWN };
-
-        // println!("{} -> {}", self.move_intent.1, update_cooldown);
-        if self.t < update_cooldown {
-            // println!("{}/{}", self.t, self.tick_delay);
-            self.t += 1;
-            return None;
-        }
-        self.t = 0;
+        // // println!("{} -> {}", self.move_intent.1, update_cooldown);
+        // if self.t < update_cooldown {
+        //     // println!("{}/{}", self.t, self.tick_delay);
+        //     self.t += 1;
+        //     return None;
+        // }
+        // self.t = 0;
 
         // self.handle_input(input, "game");
-
-        // apply movement to Tetromino
-        if self.move_intent.0 != 0 || self.move_intent.1 != 0 {
-            // println!("{},{}", self.move_intent.0, self.move_intent.1);
-
-            // apply the horizontal movement queued up by the player
-            self.move_x();
-
-            // apply the vertical movement; 
-            // true: Tetromino collided with something
-            if self.move_y() {
-
-                // add the Tetromino the the playfield
-                self.add_to_playfield();
-
-                // let mut next_playfield = self.check_rows();
-                let mut score_sum = 0;
-
-                // TODO: this is where some sort of animation comes into play
-
-                // repeat as long as there's a next playfield
-                loop {
-                    match self.check_rows() {
-                        Some(playfield) => {
-                            self.set_playfield(playfield);
-                            // println!("new playfield");
-                            // next_playfield = self.check_rows();
-                            score_sum += 1;
-                        },
-                        None => {
-                        break
-                        }
-                    }
-
-
-                    // replace the playfield with the next one
-                    // self.set_playfield(next_playfield);
-
-                    // println!("new playfield");
-                    
-                }
-
-                if score_sum != 0 {
-                    self.score += score_sum * score_sum * 10;
-                    println!("score: {} (+{})", self.score, score_sum * score_sum * 10);
-                }                    
-
-                // lose control over the Tetromino and get the next one
-                self.next()
-            }
-
-            // reset the move_intent after fulfilling both movement axes
-            self.reset_move_intent();
-        } 
 
         // capture the screen
         // if input.key("ControlLeft") && input.key_pressed("KeyS") {

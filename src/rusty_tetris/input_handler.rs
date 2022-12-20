@@ -15,8 +15,8 @@ pub struct KeyMap {
 impl KeyMap {
 
     // creates a new InputStatus. Initializes it's timer with it's KeyMap cooldown value if Some
-    pub fn new (key_text: String, category: String, cooldown: Option<u8>) -> Self {
-        Self { key_text, category, cooldown, timer: match cooldown { Some(t) => t, None => 0 } }
+    pub fn new (key_text: &str, category: &str, cooldown: Option<u8>) -> Self {
+        Self { key_text: key_text.to_owned(), category: category.to_owned(), cooldown, timer: match cooldown { Some(t) => t, None => 0 } }
     }
 
     // checks if key is pressed / held and returns true if input triggers
@@ -73,15 +73,17 @@ impl InputHandler for RustyTetris {
         self.inputmap = vec![
 
             // inputs while in game
-            KeyMap::new("KeyQ".to_owned(),          "game".to_owned(), None ),
-            KeyMap::new("KeyE".to_owned(),          "game".to_owned(), None ),
-            KeyMap::new("BackSpace".to_owned(),     "game".to_owned(), None ),
-            KeyMap::new("Enter".to_owned(),         "game".to_owned(), None ),
-            // KeyMap::new("ArrowUp".to_owned(),       "game".to_owned(), Some(0) ),
-            KeyMap::new("ArrowDown".to_owned(),     "game".to_owned(), Some(0) ),
+            KeyMap::new("KeyQ",          "game", None ),
+            KeyMap::new("KeyE",          "game", None ),
+            KeyMap::new("BackSpace",     "game", None ),
+            KeyMap::new("Enter",         "game", None ),
+            // KeyMap::new("ArrowUp",       "game", Some(0) ),
+            KeyMap::new("ArrowDown",     "game", Some(0) ),
 
-            KeyMap::new("ArrowLeft".to_owned(),     "game".to_owned(), Some(6) ),
-            KeyMap::new("ArrowRight".to_owned(),    "game".to_owned(), Some(6) ),
+            KeyMap::new("ArrowLeft",     "game", Some(6) ),
+            KeyMap::new("ArrowRight",    "game", Some(6) ),
+
+            KeyMap::new("Space",         "game", None ),
 
         ];
 
@@ -104,14 +106,15 @@ impl InputHandler for RustyTetris {
                 "BackSpace"     => self.reset(),
                 "Enter"         => self.pause(),
 
-                // after pause check gae inputs
+                // after pause check game inputs
                 "ArrowLeft"     => self.intent_x(-1),
                 "ArrowRight"    => self.intent_x(1),
                 "ArrowUp"       => self.intent_y(-1),
                 "ArrowDown"     => self.intent_y(1),
+                "Space"         => self.skip(),
 
                 // no key ? probably a overlook
-                _=> println!("{}.handle_input: Key '{}' is registered but no mapped to anything!", std::any::type_name::<Self>(), self.inputmap[key].key_text)
+                _=> println!("{}.handle_input: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.inputmap[key].key_text)
             }}
         }
 
