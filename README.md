@@ -11,8 +11,12 @@ doryen-rs - https://github.com/jice-nospam/doryen-rs
 ## Relevant concepts
 [Tetromino](https://tetris.fandom.com/wiki/Tetromino) - Naming convention for the Tetris pieces 
   
-[Super Rotation System](https://tetris.fandom.com/wiki/SRS) - Guidelines of Tetrominos rotation
-<details><summary>see</summary>
+<details><summary>
+<a href="https://tetris.fandom.com/wiki/SRS">
+Super Rotation System
+</a>
+Guidelines of Tetrominos rotation
+</summary>
 
 >![alt text](https://static.wikia.nocookie.net/tetrisconcept/images/3/3d/SRS-pieces.png/revision/latest?cb=20060626173148 "visual representation of pivot points of Tetrominos while rotating")
 </details>
