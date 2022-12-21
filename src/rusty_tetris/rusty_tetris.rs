@@ -9,8 +9,8 @@ use super::routine_handler::RoutineHandler;
 // use super::HasBag;
 
 // defines the values that the move_intent resets to
-// pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
-// pub const RESET_MOVE_INTENT_AUTO: (i8, i8) = (0, 1);
+pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
+pub const RESET_MOVE_INTENT_AUTO: (i8, i8) = (0, 1);
 
 // sizes of the playfield array
 pub const PLAYFIELD_WIDTH: u8 = 10;
@@ -174,7 +174,7 @@ impl RustyTetris {
     }
 
     // declare the intent of moving x by 'dir' in the next move_x call
-    pub fn intent_x (&mut self, dir: i8) { self.move_intent.0 = (self.move_intent.0 + dir).min(1).max(-1) }
+    pub fn intent_x (&mut self, dir: i8) { self.move_intent.0 = (self.move_intent.0 as i32 + dir as i32).min(127) as i8 /*/.min(1).max(-1) */}
 
     // calls move_cur to move horizontally
     fn _move_x (&mut self, dir: i8) { self.move_cur((dir, 0)); }
@@ -187,11 +187,11 @@ impl RustyTetris {
         self._move_x(self.move_intent.0);
 
         // reset x intent
-        // self.move_intent.0 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.0 } else { RESET_MOVE_INTENT_AUTO.0 };
+        self.move_intent.0 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.0 } else { RESET_MOVE_INTENT_AUTO.0 };
     }
 
     // declare the intent of moving y by 'dir' in the next move_y call
-    pub fn intent_y (&mut self, dir: i8) { self.move_intent.1 = (self.move_intent.1 + dir).min(4).max(-4) }
+    pub fn intent_y (&mut self, dir: i8) { self.move_intent.1 = (self.move_intent.1 as i32 + dir as i32).min(127) as i8 /*/.min(4).max(-4) */}
 
     // calls move_cur to move vertically
     fn _move_y (&mut self, dir: i8) -> bool { self.move_cur((0, dir)) }
@@ -207,8 +207,8 @@ impl RustyTetris {
 
         // self.move_intent.1 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.1 } else { RESET_MOVE_INTENT_AUTO.1 };
         
-        self.move_intent.1 = self.move_intent.1 +
-        if self.move_intent.1 > 1 { -1 } else if self.move_intent.1 < 0 {1} else {0};
+        self.move_intent.1 -= self.move_intent.1.abs() / 4;
+        if self.move_intent.1 == 0 { self.move_intent.1 = 1 }
         println!(" -> {}", self.move_intent.1);
 
         if result {return};

@@ -13,12 +13,12 @@ impl Routine {
         Self { key: key.to_owned(), category: category.to_owned(), cooldown, timer: match cooldown { Some(t) => t, None => 0 } }
     }
 
-    pub fn trigger (&mut self) -> bool {
+    pub fn trigger (&mut self, speed: u8) -> bool {
         // if self.key == "move_y" { println!("{}/{:?}", self.timer, self.cooldown)}
         match self.cooldown {
             Some(cooldown) => {
                 if self.timer < cooldown {
-                    self.set_timer(self.timer + 1);
+                    self.set_timer(self.timer + speed);
                     return false;
                 }
                 self.timer = 0;
@@ -28,10 +28,10 @@ impl Routine {
         }
     }
 
-    pub fn set_cooldown(&mut self, new_cooldown :Option<u8>) {
-        println!("new {} cooldown: {:?} -> {:?}", self.key, self.cooldown, new_cooldown);
-        self.cooldown = new_cooldown
-    }
+    // pub fn set_cooldown(&mut self, new_cooldown :Option<u8>) {
+    //     // println!("new {} cooldown: {:?} -> {:?}", self.key, self.cooldown, new_cooldown);
+    //     self.cooldown = new_cooldown
+    // }
 
     pub fn set_timer(&mut self, new_timer: u8) {
         match self.cooldown {
@@ -47,7 +47,7 @@ pub trait RoutineHandler {
     fn initialize_routines (&mut self);
 
     // to verify and trigger routines
-    fn handle_routines(&mut self, category: &str);
+    fn handle_routines(&mut self, category: &str, speed: i8);
 
     // to reset the timer of a routine
     fn reset_timer (&mut self, key: &str, category: Option<&str>);
@@ -72,14 +72,13 @@ impl RoutineHandler for RustyTetris {
     // registers the following routines
     fn initialize_routines (&mut self) {
         self.routines = vec![
-            Routine::new("move_x", "not_paused", Some(6)),
-            Routine::new("move_y", "not_paused", Some(30)),
-            Routine::new("reset_move_intent", "end", None),
+            Routine::new("move_x", "game", Some(24)),
+            Routine::new("move_y", "game", Some(120)),
         ];
     }
 
     // verifies each routine and triggers them
-    fn handle_routines(&mut self, category: &str) {
+    fn handle_routines(&mut self, category: &str, speed: i8) {
 
         // loop through all registered routines
         for index in 0..self.routines.len() {
@@ -87,14 +86,11 @@ impl RoutineHandler for RustyTetris {
             if self.routines[index].category != category { continue; }
 
             // if trigger returns true, match the key to call the function
-            if self.routines[index].trigger().to_owned() { match self.routines[index].key.as_str() {
+            if self.routines[index].trigger(speed as u8).to_owned() { match self.routines[index].key.as_str() {
 
                 // before paused check game routines
                 "move_x"          => self.move_x(),
                 "move_y"          => self.move_y(),
-
-                "reset_move_intent" => self.reset_move_intent(),
-
 
                 // no key ? probably a overlook
                 _=> println!("{}.handle_routines: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.routines[index].key)

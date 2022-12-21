@@ -62,7 +62,7 @@ pub trait InputHandler {
     fn register_inputs (&mut self);
 
     // to verify and trigger previously registered inputs 
-    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str);
+    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str, speed: i8);
 }
 
 // implement the InputHandler trait on RustyTetris
@@ -72,14 +72,13 @@ impl InputHandler for RustyTetris {
     fn register_inputs (&mut self) {
         self.inputmap = vec![
 
-            // inputs while in game
+            KeyMap::new("BackSpace",     "prio", None ),
+            KeyMap::new("Enter",         "prio", None ),
+
             KeyMap::new("KeyQ",          "game", None ),
             KeyMap::new("KeyE",          "game", None ),
-            KeyMap::new("BackSpace",     "game", None ),
-            KeyMap::new("Enter",         "game", None ),
-            // KeyMap::new("ArrowUp",       "game", Some(0) ),
+            KeyMap::new("ArrowUp",       "game", Some(20) ),
             KeyMap::new("ArrowDown",     "game", Some(20) ),
-
             KeyMap::new("ArrowLeft",     "game", Some(6) ),
             KeyMap::new("ArrowRight",    "game", Some(6) ),
 
@@ -90,7 +89,7 @@ impl InputHandler for RustyTetris {
     }
 
     // verify and trigger inputs of frame
-    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str) {
+    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str, speed: i8) {
 
         // loop through all registered inputs
         for index in 0..self.inputmap.len() {
@@ -109,8 +108,8 @@ impl InputHandler for RustyTetris {
                 // after pause check game inputs
                 "ArrowLeft"     => self.intent_x(-1),
                 "ArrowRight"    => self.intent_x(1),
-                "ArrowUp"       => self.intent_y(-2),
-                "ArrowDown"     => self.intent_y(2),
+                "ArrowUp"       => self.intent_y(-speed),
+                "ArrowDown"     => self.intent_y(speed),
                 "Space"         => self.skip(),
 
                 // no key ? probably a overlook
