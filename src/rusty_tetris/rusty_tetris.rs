@@ -162,6 +162,17 @@ impl RustyTetris {
         }
     }
 
+    pub fn reset_move_intent (&mut self) {
+        print!("move_intent.1: {}", self.move_intent.1);
+        self.move_intent = (0,
+            if DEBUG_MOVEMENT { 0 } else { 
+                if self.move_intent.1.abs() <= 1 { 1 }
+                else { self.move_intent.1 - self.move_intent.1.signum() }
+            }
+        );
+        println!(" | new_move_intent.1: {}", self.move_intent.1);
+    }
+
     // declare the intent of moving x by 'dir' in the next move_x call
     pub fn intent_x (&mut self, dir: i8) { self.move_intent.0 = (self.move_intent.0 + dir).min(1).max(-1) }
 
@@ -186,31 +197,22 @@ impl RustyTetris {
     fn _move_y (&mut self, dir: i8) -> bool { self.move_cur((0, dir)) }
     pub fn move_y (&mut self) {
 
-        // let update_cooldown = 
-        //     if self.move_intent.1 < 0 { 30 * self.move_intent.1.abs() as usize } 
-        //     else if self.move_intent.1 > 0 { 30 / self.move_intent.1 as usize } 
-        //     else { 30 };
-
-        // // println!("{} -> {}", self.move_intent.1, update_cooldown);
-        // if self.t < update_cooldown {
-        //     // println!("{}/{}", self.t, self.tick_delay);
-        //     self.t += 1;
-        //     return;
-        // }
-
-        // self.t = 0;
-
         // cancel if no intent to move y
         if self.move_intent.1 == 0 { return; }
 
         // apply the y move
-        if !self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()}) {
+        let result = !self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()});
 
-            // reset intent after move
-            self.move_intent.1 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.1 } else { RESET_MOVE_INTENT_AUTO.1 };
-            return;
-        }
+        print!("{}", self.move_intent.1);
 
+        // self.move_intent.1 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.1 } else { RESET_MOVE_INTENT_AUTO.1 };
+        
+        self.move_intent.1 = self.move_intent.1 +
+        if self.move_intent.1 > 1 { -1 } else if self.move_intent.1 < 0 {1} else {0};
+        println!(" -> {}", self.move_intent.1);
+
+        if result {return};
+        
         // add the Tetromino the the playfield
         self.add_to_playfield();
 
