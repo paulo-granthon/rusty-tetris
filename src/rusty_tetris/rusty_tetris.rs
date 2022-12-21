@@ -201,13 +201,18 @@ impl RustyTetris {
         if self.move_intent.1 == 0 { return; }
 
         // apply the y move
-        if !self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()}) {
+        let result = !self._move_y(if self.move_intent.1 < 1 {1} else {self.move_intent.1.signum()});
 
-            // reset intent after move
-            // self.move_intent.1 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.1 } else { RESET_MOVE_INTENT_AUTO.1 };
-            return;
-        }
+        print!("{}", self.move_intent.1);
 
+        // self.move_intent.1 = if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.1 } else { RESET_MOVE_INTENT_AUTO.1 };
+        
+        self.move_intent.1 = self.move_intent.1 +
+        if self.move_intent.1 > 1 { -1 } else if self.move_intent.1 < 0 {1} else {0};
+        println!(" -> {}", self.move_intent.1);
+
+        if result {return};
+        
         // add the Tetromino the the playfield
         self.add_to_playfield();
 
