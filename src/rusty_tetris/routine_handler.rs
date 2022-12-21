@@ -4,8 +4,8 @@ use super::rusty_tetris::RustyTetris;
 pub struct Routine {
     key: String,
     category: String,
-    cooldown: Option<u8>,
-    timer: u8,
+    pub cooldown: Option<u8>,
+    pub timer: u8,
 }
 
 impl Routine {
@@ -14,10 +14,11 @@ impl Routine {
     }
 
     pub fn trigger (&mut self) -> bool {
+        // if self.key == "move_y" { println!("{}/{:?}", self.timer, self.cooldown)}
         match self.cooldown {
             Some(cooldown) => {
                 if self.timer < cooldown {
-                    self.timer = (self.timer + 1).min(cooldown);
+                    self.set_timer(self.timer + 1);
                     return false;
                 }
                 self.timer = 0;
@@ -26,12 +27,24 @@ impl Routine {
             None => true
         }
     }
+
+    pub fn set_cooldown(&mut self, new_cooldown :Option<u8>) {
+        println!("new {} cooldown: {:?} -> {:?}", self.key, self.cooldown, new_cooldown);
+        self.cooldown = new_cooldown
+    }
+
+    pub fn set_timer(&mut self, new_timer: u8) {
+        match self.cooldown {
+            Some(cooldown) => self.timer = new_timer.min(cooldown),
+            None => self.timer = new_timer
+        }
+    }
 }
 
 pub trait RoutineHandler {
 
     // to register routines 
-    fn register_routines (&mut self);
+    fn initialize_routines (&mut self);
 
     // to verify and trigger routines
     fn handle_routines(&mut self, category: &str);
@@ -39,16 +52,29 @@ pub trait RoutineHandler {
     // to reset the timer of a routine
     fn reset_timer (&mut self, key: &str, category: Option<&str>);
 
+    // to access routine data
+    fn get_routine(&mut self, key: &str, category: &str) -> Option<&mut Routine>;
+
+    // // to register a new routine
+    // fn register_routine(&mut self, key: &str, category: &str, cooldown: Option<u8>) -> &Routine;
+
+    // // to unregister a routine
+    // fn unregister_routine(&mut self, key: &str, category: &str);
+
+    // // to replace a routine
+    // fn replace_routine (&mut self, key: &str, category: &str, cooldown: Option<u8>) -> &Routine;
+
 }
 
 // defines the RoutineHandler trait to state the following functions on a Struct that implements it
 impl RoutineHandler for RustyTetris {
 
     // registers the following routines
-    fn register_routines (&mut self) {
+    fn initialize_routines (&mut self) {
         self.routines = vec![
             Routine::new("move_x", "not_paused", Some(6)),
             Routine::new("move_y", "not_paused", Some(30)),
+            Routine::new("reset_move_intent", "end", None),
         ];
     }
 
@@ -67,12 +93,45 @@ impl RoutineHandler for RustyTetris {
                 "move_x"          => self.move_x(),
                 "move_y"          => self.move_y(),
 
+                "reset_move_intent" => self.reset_move_intent(),
+
+
                 // no key ? probably a overlook
                 _=> println!("{}.handle_routines: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.routines[index].key)
             }}
         }
     }
 
+    // returns the routine with given key and category
+    fn get_routine(&mut self, key: &str, category: &str) -> Option<&mut Routine> {
+        for index in 0..self.routines.len() {
+            if self.routines[index].category != category { continue; }
+            if self.routines[index].key != key { continue; }
+            return Some(&mut self.routines[index]);
+        }
+        return None;
+    }
+
+    // registers a new routine
+    // fn register_routine(&mut self, key: &str, category: &str, cooldown: Option<u8>) -> &Routine {
+    //     let routine = Routine::new(key, category, cooldown);
+    //     self.routines.push(routine);
+    //     let index = self.routines.iter().position(|r| &r.key == key && &r.category == category).unwrap();
+    //     &self.routines[index]
+    // }
+
+    // // removes a routine
+    // fn unregister_routine(&mut self, key: &str, category: &str) {
+    //     let index = self.routines.iter().position(|r| &r.key == key && &r.category == category).unwrap();
+    //     self.routines.swap_remove(index);
+    // }
+
+    // // replaces a routine
+    // fn replace_routine (&mut self, key: &str, category: &str, cooldown: Option<u8>) -> &Routine{
+    //     self.unregister_routine(key, category);
+    //     self.register_routine(key, category, cooldown)
+    // }
+    
     // resets the timer of given routine
     fn reset_timer (&mut self, key: &str, category: Option<&str>) {
 
@@ -89,4 +148,6 @@ impl RoutineHandler for RustyTetris {
             self.routines[index].timer = 0;
         }
     }
+
+
 }

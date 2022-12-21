@@ -191,7 +191,7 @@ pub fn get_rot_correction <const W: usize, const H: usize> (grid: &Vec<Vec<bool>
 
             // if not 0
             if oob_correction != 0 {
-                println!("oob_x: {}", oob_correction);
+                // println!("oob_x: {}", oob_correction);
 
                 // compare with current correction
                 if oob_correction.abs() > correction.abs() { correction = oob_correction; }

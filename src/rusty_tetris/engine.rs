@@ -11,7 +11,7 @@ impl Engine for RustyTetris {
     // initialize the engine
     fn init(&mut self, api: &mut dyn DoryenApi) {
         self.register_inputs();
-        self.register_routines();
+        self.initialize_routines();
 
         // register colors 
         for color in RTColor::iter() {
@@ -33,6 +33,19 @@ impl Engine for RustyTetris {
         self.handle_input(input, "game");
 
         if self.paused { return None }
+        // self.handle_routines("end");
+
+        let update_cooldown = if self.move_intent.1 < 0 {30 * self.move_intent.1 } else if self.move_intent.1 > 0 {30 / self.move_intent.1.abs()} else {30} as u8;
+        match self.get_routine("move_y", "not_paused") {
+            Some(routine) => {
+                let current_cooldown = routine.cooldown.unwrap();
+                if current_cooldown != update_cooldown { routine.set_cooldown(routine.cooldown); }
+                println!("{:?}", routine.cooldown);
+        
+            },
+            None => {}
+        }
+        
 
         self.handle_routines("not_paused");
 

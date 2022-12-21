@@ -3,7 +3,6 @@ extern crate doryen_rs; use doryen_rs::{App, AppOptions};
 
 
 // Debug constants
-// const DEBUG_MOVEMENT: bool = true;
 const DEBUG_MOVEMENT: bool = false;
 const DEBUG_RENDER: bool = false;
 

@@ -29,8 +29,8 @@ impl TetrominoID {
         match self {
             I => Tetromino::from_array([
                 [false, false, false, false],
-                [false, false, false, false],
                 [true,  true,  true,  true],
+                [false, false, false, false],
                 [false, false, false, false],
             ], Cyan),
             J => Tetromino::from_array([

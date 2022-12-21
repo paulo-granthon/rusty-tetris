@@ -8,4 +8,3 @@ edition = "2021"
 [dependencies]
 doryen-rs = "1.3.0"
 rand = "*"
-ahash = "0.8.2"

@@ -109,8 +109,8 @@ impl InputHandler for RustyTetris {
                 // after pause check game inputs
                 "ArrowLeft"     => self.intent_x(-1),
                 "ArrowRight"    => self.intent_x(1),
-                "ArrowUp"       => self.intent_y(-1),
-                "ArrowDown"     => self.intent_y(1),
+                "ArrowUp"       => self.intent_y(-2),
+                "ArrowDown"     => self.intent_y(2),
                 "Space"         => self.skip(),
 
                 // no key ? probably a overlook
