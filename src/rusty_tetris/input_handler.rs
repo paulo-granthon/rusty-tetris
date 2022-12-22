@@ -72,7 +72,7 @@ impl InputHandler for RustyTetris {
     fn register_inputs (&mut self) {
         self.inputmap = vec![
 
-            KeyMap::new("BackSpace",     "priority", None ),
+            KeyMap::new("Backspace",     "priority", Some(0) ),
             KeyMap::new("Enter",         "priority", None ),
 
             KeyMap::new("KeyQ",          "game", Some(24) ),
@@ -102,7 +102,7 @@ impl InputHandler for RustyTetris {
                 // before paused check game inputs
                 "KeyQ"          => self.rotate(true),
                 "KeyE"          => self.rotate(false),
-                "BackSpace"     => self.reset(),
+                "Backspace"     => self.reset(),
                 "Enter"         => self.pause(),
 
                 // after pause check game inputs

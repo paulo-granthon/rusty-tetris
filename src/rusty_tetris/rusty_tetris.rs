@@ -75,10 +75,12 @@ impl RustyTetris {
     // resets the game
     pub fn reset(&mut self) {
         self.playfield = Self::create_playfield();
+        self.initialize_routines();
+        use super::InputHandler;
+        self.register_inputs();
         self.score = 0;
         self.next();
     }
-
     // define the next Tetromino of the match
     pub fn next (&mut self) {
         let t = self.bag_next();
@@ -86,7 +88,9 @@ impl RustyTetris {
         let size = (t.grid[0].len() as u32, t.grid.len() as u32);
         self.cur_tetromino = Some(t);
         self.cur_con = Some(Console::new(size.0 * BLOCK_SCALE as u32, size.1 * BLOCK_SCALE as u32));
-        self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0)
+        self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0);
+
+        if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 { self.reset() };
     }
 
     pub fn get_skip_steps (&self, t: &Tetromino) -> i8 {
