@@ -30,16 +30,18 @@ impl Engine for RustyTetris {
 
         self.mouse_pos = input.mouse_pos();
 
-        self.handle_input(input, "prio", 1);
+        self.handle_input(input, "priority");
         
         if self.paused { return None }
         
-        let game_speed = self.move_intent.1;
+        // let game_speed = self.move_intent.1;
 
         // self.handle_routines("end");
 
-        self.handle_input(input, "game", game_speed);
-        self.handle_routines("game", game_speed);
+        self.handle_input(input, "game");
+        self.handle_routines("game");
+
+        // self.check_game_status();
 
         // self.handle_input(input, "game");
 
