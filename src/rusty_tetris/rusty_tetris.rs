@@ -26,6 +26,7 @@ pub struct RustyTetris {
     pub bag_queue: Option<Bag>,
     pub cur_tetromino: Option<Tetromino>,
     pub cur_con: Option<Console>,
+    pub next_con: Option<Console>,
     pub cur_pos: (i8, i8),
     pub move_intent: (i8, i8),
     pub score: i32,
@@ -58,6 +59,7 @@ impl RustyTetris {
             bag_queue: None,
             cur_tetromino: Default::default(),
             cur_con: None,
+            next_con: None,
             cur_pos: (0, 0),
             move_intent: (0, 1),
             score: 0,
@@ -89,6 +91,8 @@ impl RustyTetris {
         self.cur_tetromino = Some(t);
         self.cur_con = Some(Console::new(size.0 * BLOCK_SCALE as u32, size.1 * BLOCK_SCALE as u32));
         self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0);
+        
+        self.next_con = Some(Console::new(6 * BLOCK_SCALE as u32, 8 * BLOCK_SCALE as u32));
 
         if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 { self.reset() };
     }

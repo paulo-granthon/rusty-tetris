@@ -21,6 +21,9 @@ const R_PLAYFIELD_Y: i32 = CONSOLE_HEIGHT as i32 / 2 - (PLAYFIELD_HEIGHT * BLOCK
 const R_PLAYFIELD_SIZE_X: u32 = (PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2;
 const R_PLAYFIELD_SIZE_Y: u32 = (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2;
 
+const NEXT_CON_WIDTH : u32 = 6;
+const NEXT_CON_HEIGHT : u32 = 8;
+
 pub trait RenderEngine {
     fn rt_render (&mut self, con: &mut Console);
 }
@@ -43,32 +46,85 @@ impl RenderEngine for super::RustyTetris {
         // get a reference to the current position of the Tetromino
         let cur_pos = self.cur_pos;
 
+        let block_scale = BLOCK_SCALE as i32;
+        let half_pf_width = PLAYFIELD_WIDTH as i32 / 2;
+        let half_pf_height = PLAYFIELD_HEIGHT as i32 / 2;
+
+        let half_con_width = CONSOLE_WIDTH as i32 / 2;
+        let half_con_height = CONSOLE_HEIGHT as i32 / 2;
+        
         // render the current Tetromino
         let s = self.get_skip_steps(&self.cur_tetromino.to_owned().unwrap());
         let t_con = self.cur_con.as_mut();
 
-        match render_tetromino(t_con, &self.cur_tetromino, BLOCK_SCALE as i32) {
+        match render_tetromino(t_con, &self.cur_tetromino, (0, 0), block_scale) {
             Some(cur_con) => {
                 cur_con.blit(
-                    (CONSOLE_WIDTH as i32 / 2) + (cur_pos.0 as i32 - (PLAYFIELD_WIDTH as i32 / 2)) * BLOCK_SCALE as i32,
-                    (CONSOLE_HEIGHT as i32 / 2) + (cur_pos.1 as i32 - (PLAYFIELD_HEIGHT as i32 / 2)) * BLOCK_SCALE as i32,
+                    half_con_width + (cur_pos.0 as i32 - half_pf_width) * block_scale,
+                    half_con_height + (cur_pos.1 as i32 - half_pf_height) * block_scale,
                     con, 
                     1.0,
                     1.0, 
                     if DEBUG_RENDER {None} else {Some(RTColor::White.value().1)}
                 );
                 cur_con.blit(
-                    (CONSOLE_WIDTH as i32 / 2) + (cur_pos.0 as i32 - (PLAYFIELD_WIDTH as i32 / 2)) * BLOCK_SCALE as i32,
-                    (CONSOLE_HEIGHT as i32 / 2) + ((cur_pos.1 + s) as i32 - (PLAYFIELD_HEIGHT as i32 / 2)) * BLOCK_SCALE as i32,
+                    half_con_width + (cur_pos.0 as i32 - half_pf_width) * block_scale,
+                    half_con_height + ((cur_pos.1 + s) as i32 - half_pf_height) * block_scale,
                     con, 
-                    0.5,
-                    0.5, 
+                    0.3,
+                    0.3, 
                     if DEBUG_RENDER {None} else {Some(RTColor::White.value().1)}
                 );
 
             },
             None => {}
         }
+
+        match self.next_con.as_mut() {
+            Some (nt_con) => {
+                nt_con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), None);
+                nt_con.rectangle(
+                    0,
+                    0,
+                    NEXT_CON_WIDTH * block_scale as u32,
+                    NEXT_CON_HEIGHT * block_scale as u32,
+                    Some((128, 128, 128, 255)),
+                    Some((80, 80, 80, 255)),
+                    None,
+                );                    
+            }
+            None => {}
+        }
+
+        use super::HasBag;
+        match self.bag_peek_next() {
+            Some(next_tetromino) => { 
+                let nt = next_tetromino.get();
+                let nt_width = nt.grid.len();
+                let nt_heigth = nt.grid[0].len();
+
+                let nt_con = self.next_con.as_mut();
+                match render_tetromino(nt_con, &Some(nt), (
+                    (NEXT_CON_WIDTH as i8 - nt_width  as i8) / 2, 
+                    (NEXT_CON_WIDTH as i8 - nt_heigth as i8) - 1, 
+                ), block_scale) {
+                    Some(nt_con) => {
+                        nt_con.blit(
+                            half_con_width + (R_PLAYFIELD_SIZE_X as i32 / 2),
+                            half_con_height + (R_PLAYFIELD_SIZE_Y as i32 / 2) - (NEXT_CON_HEIGHT as i32 * block_scale),
+                            con, 
+                            1.0,
+                            1.0, 
+                            if DEBUG_RENDER {None} else {Some(RTColor::White.value().1)}
+                        );
+                    },
+                    None => { println!("render -- peek_bag_next ")}
+                }
+            },
+            None => { println!("render -- bag_peek_next returned None")}
+        }
+
+        
     }
 
 }
@@ -117,16 +173,16 @@ pub fn render_playfield<'a, const W: usize, const H: usize> (playfield_con: Opti
 }
 
 // renders a Tetromino
-pub fn render_tetromino<'a>(t_con: Option<&'a mut Console>, tetromino: &Option<Tetromino>, scale:i32) -> Option<&'a mut Console> {
+pub fn render_tetromino<'a>(t_con: Option<&'a mut Console>, tetromino: &Option<Tetromino>, pos: (i8, i8), scale:i32) -> Option<&'a mut Console> {
 
-    // match Some / None
+    // match console Some / None
     match t_con {
 
         // if Some
         Some(con) => {
 
             // clear the Tetromino's console 
-            con.clear(None, Some(RTColor::White.value().1), Some(' ' as u16));
+            // con.clear(None, Some(RTColor::White.value().1), Some(' ' as u16));
 
             match tetromino {
                 Some(t) => {
@@ -136,7 +192,7 @@ pub fn render_tetromino<'a>(t_con: Option<&'a mut Console>, tetromino: &Option<T
                         for y in 0..t.grid[0].len() {
 
                             let color = if t.grid[x][y] { t.color.value().1 } else { RTColor::White.value().1 };
-                            render_block(con, x as i32, y as i32, color, scale, 0, 0);
+                            render_block(con, pos.0 as i32 + x as i32, pos.1 as i32 + y as i32, color, scale, 0, 0);
                             
                         }
                     };

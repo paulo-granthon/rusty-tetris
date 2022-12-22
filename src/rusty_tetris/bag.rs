@@ -41,6 +41,11 @@ impl Bag {
         self.index += 1;
         tetromino
     }
+    pub fn peek (&self) -> Option<TetrominoID> {
+        if self.index >= self.sequence.len() { return None }
+        Some(self.sequence[self.index])
+    }
+
 }
 
 fn contains(sequence: &Vec<TetrominoID>, tid: &TetrominoID) -> bool {
@@ -51,6 +56,7 @@ fn contains(sequence: &Vec<TetrominoID>, tid: &TetrominoID) -> bool {
 }
 pub trait HasBag {
     fn bag_next(&mut self) -> Tetromino;
+    fn bag_peek_next(&self) -> Option<TetrominoID>;
 }
 
 impl HasBag for RustyTetris {
@@ -61,6 +67,13 @@ impl HasBag for RustyTetris {
                 self.bag_queue = Some(Bag::new());
                 self.bag_next()
             }
+        }
+    }
+
+    fn bag_peek_next(&self) -> Option<TetrominoID> {
+        match &self.bag_queue {
+            Some(bag) => bag.peek(),
+            None => None
         }
     }
 }
