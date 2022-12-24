@@ -75,8 +75,8 @@ impl InputHandler for RustyTetris {
             KeyMap::new("Backspace",     "priority", Some(0) ),
             KeyMap::new("Enter",         "priority", None ),
 
-            KeyMap::new("KeyQ",          "game", Some(24) ),
-            KeyMap::new("KeyE",          "game", Some(24) ),
+            KeyMap::new("KeyQ",          "game", Some(6) ),
+            KeyMap::new("KeyE",          "game", Some(6) ),
             KeyMap::new("ArrowUp",       "game", Some(0) ),
             KeyMap::new("ArrowDown",     "game", Some(0) ),
             KeyMap::new("ArrowLeft",     "game", Some(6) ),

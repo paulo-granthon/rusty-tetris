@@ -115,7 +115,7 @@ impl RustyTetris {
             },
             Some (t) => {
                 self.move_cur((0, self.get_skip_steps(&t)));
-                self.reset_timer("move_y", Some("not_paused"));
+                self.reset_timer("move_y", Some("game"));
             }
         }
     }

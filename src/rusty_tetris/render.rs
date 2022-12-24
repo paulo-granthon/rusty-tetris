@@ -210,6 +210,13 @@ pub fn render_tetromino<'a>(t_con: Option<&'a mut Console>, tetromino: &Option<T
 
 }
 
+const CHAR_GRID: [[u16; 2]; 2] = [
+    // [187, 188],
+    // [300, 301]
+    [201, 187],
+    [200, 188]
+];
+
 // renders a single block of a Tetromino
 pub fn render_block (con: &mut Console, x: i32, y: i32, color: (u8, u8, u8, u8), scale: i32, offs_x: i32, offs_y : i32) {
 
@@ -217,7 +224,7 @@ pub fn render_block (con: &mut Console, x: i32, y: i32, color: (u8, u8, u8, u8),
         for by in 0..scale {
 
             // remove foreground ascii from target location
-            con.ascii(x * scale + bx + offs_x, y * scale + by + offs_y, 0);
+            con.ascii(x * scale + bx + offs_x, y * scale + by + offs_y, CHAR_GRID[by as usize][bx as usize]);
 
             // render this position if true, render blank if false
             con.back(x * scale + bx + offs_x, y * scale + by + offs_y, color);

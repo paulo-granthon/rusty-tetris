@@ -140,8 +140,10 @@ impl RoutineHandler for RustyTetris {
             // if key doesn't match, skip
             if self.routines[index].key != key { continue; }
 
+            
             // resets the timer of the routine
             self.routines[index].timer = 0;
+            break;
         }
     }
 
