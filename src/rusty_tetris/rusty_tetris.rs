@@ -23,6 +23,7 @@ pub const BLOCK_SCALE: u8 = 2;
 pub struct RustyTetris {
     pub playfield: [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize],
     pub playfield_con: Option<Console>,
+    pub move_y_cooldown: u32,
     pub bag_queue: Option<Bag>,
     pub cur_tetromino: Option<Tetromino>,
     pub cur_con: Option<Console>,
@@ -30,7 +31,6 @@ pub struct RustyTetris {
     pub cur_pos: (i8, i8),
     pub move_intent: (i8, i8),
     pub score: i32,
-    pub t:usize,
     pub paused: bool,
     pub mouse_pos: (f32, f32),
     pub inputmap: Vec::<super::KeyMap>,
@@ -56,6 +56,7 @@ impl RustyTetris {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
+            move_y_cooldown: 240,
             bag_queue: None,
             cur_tetromino: Default::default(),
             cur_con: None,
@@ -63,7 +64,6 @@ impl RustyTetris {
             cur_pos: (0, 0),
             move_intent: (0, 1),
             score: 0,
-            t: 0,
             paused: false,
             mouse_pos: (0.0,0.0),
             inputmap: vec![],
@@ -190,12 +190,13 @@ impl RustyTetris {
     // declare the intent of moving y by 'dir' in the next move_y call
     pub fn intent_y (&mut self, dir: i8) {
         self.move_intent.1 = dir;
+        let speed = self.move_y_cooldown;
         match self.get_routine("move_y", "game") {
             None => {},
             Some(routine) => {
                 routine.set_cooldown(
-                    if dir < 0 { Some(30 * dir.abs() as u8) }
-                    else if dir > 1 { Some(30 / dir as u8) } else { Some(30) }
+                    if dir < 0 { Some(speed * dir.abs() as u32) }
+                    else if dir > 1 { Some(speed / dir as u32) } else { Some(speed) }
                 )
             }
         }
@@ -252,7 +253,8 @@ impl RustyTetris {
 
             // calculate and add to score
             self.score += score_sum * score_sum * 10;
-            println!("score: {} (+{})", self.score, score_sum * score_sum * 10);
+            self.move_y_cooldown = (self.move_y_cooldown as i32 - (self.move_y_cooldown as i32 / 30 * score_sum)).max(0) as u32;
+            println!("score: {} (+{}) | new speed: {}", self.score, score_sum * score_sum * 10, self.move_y_cooldown);
         }                    
 
         // lose control over the Tetromino and get the next one

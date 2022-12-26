@@ -4,12 +4,12 @@ use super::rusty_tetris::RustyTetris;
 pub struct Routine {
     key: String,
     category: String,
-    pub cooldown: Option<u8>,
-    pub timer: u8,
+    pub cooldown: Option<u32>,
+    pub timer: u32,
 }
 
 impl Routine {
-    pub fn new (key: &str, category: &str, cooldown: Option<u8>) -> Self {
+    pub fn new (key: &str, category: &str, cooldown: Option<u32>) -> Self {
         Self { key: key.to_owned(), category: category.to_owned(), cooldown, timer: match cooldown { Some(t) => t, None => 0 } }
     }
 
@@ -28,12 +28,12 @@ impl Routine {
         }
     }
 
-    pub fn set_cooldown(&mut self, new_cooldown :Option<u8>) {
+    pub fn set_cooldown(&mut self, new_cooldown :Option<u32>) {
         // println!("new {} cooldown: {:?} -> {:?}", self.key, self.cooldown, new_cooldown);
         self.cooldown = new_cooldown
     }
 
-    pub fn set_timer(&mut self, new_timer: u8) {
+    pub fn set_timer(&mut self, new_timer: u32) {
         match self.cooldown {
             Some(cooldown) => self.timer = new_timer.min(cooldown),
             None => self.timer = new_timer
@@ -72,8 +72,8 @@ impl RoutineHandler for RustyTetris {
     // registers the following routines
     fn initialize_routines (&mut self) {
         self.routines = vec![
-            Routine::new("move_x", "game", Some(6)),
-            Routine::new("move_y", "game", Some(30)),
+            Routine::new("move_x", "game", None),
+            Routine::new("move_y", "game", None),
         ];
     }
 
