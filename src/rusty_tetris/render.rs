@@ -53,6 +53,14 @@ impl RenderEngine for super::RustyTetris {
         let half_con_width = CONSOLE_WIDTH as i32 / 2;
         let half_con_height = CONSOLE_HEIGHT as i32 / 2;
         
+        con.print_color(
+            half_con_width,
+            half_pf_height,
+            format!("{}", self.score).as_str(),
+            doryen_rs::TextAlign::Center,
+            Some(RTColor::Black.value().1)
+        );
+
         // render the current Tetromino
         let s = self.get_skip_steps(&self.cur_tetromino.to_owned().unwrap());
         let t_con = self.cur_con.as_mut();
