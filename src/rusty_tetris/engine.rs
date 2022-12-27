@@ -3,20 +3,21 @@ use super::routine_handler::*;
 use super::input_handler::*;
 use super::render::*;
 
-extern crate doryen_rs; use doryen_rs::{DoryenApi, Engine, UpdateEvent};
+extern crate doryen_rs; use doryen_rs::{DoryenApi, UpdateEvent};
+
+pub trait RustyEngine {
+    fn init(&mut self);
+    fn update(&mut self, api: &mut dyn DoryenApi) -> Option<UpdateEvent>;
+    fn render(&mut self, api: &mut dyn DoryenApi);
+}
 
 // Doryen engine implementation for RustyTetris
-impl Engine for RustyTetris {
+impl RustyEngine for RustyTetris {
 
     // initialize the engine
-    fn init(&mut self, api: &mut dyn DoryenApi) {
+    fn init(&mut self) {
         self.register_inputs();
         self.initialize_routines();
-
-        // register colors 
-        for color in RTColor::iter() {
-            api.con().register_color(color.value().0, color.value().1);
-        }
 
         // get the first Tetromino for the match
         self.next();
@@ -46,7 +47,7 @@ impl Engine for RustyTetris {
         // self.handle_input(input, "game");
 
         // capture the screen
-        // if input.key("ControlLeft") && input.key_pressed("KeyS") {
+        // if input.key("F12") && input.key_pressed("KeyS") {
         //     self.screenshot_idx += 1;
         //     return Some(UpdateEvent::Capture(format!(
         //         "screenshot_{:03}.png",
@@ -118,5 +119,6 @@ impl Engine for RustyTetris {
         //     0, 0
         // );
     }
+
 }
 

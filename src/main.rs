@@ -27,7 +27,7 @@ fn main() {
         max_fps: MAX_FPS,
     });
 
-    app.set_engine(Box::new(RustyTetris::new()));
+    app.set_engine(Box::new(StateHandler::new()));
     app.run();
 
 }

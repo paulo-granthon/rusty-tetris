@@ -5,10 +5,10 @@ use super::RustyTetris;
 
 // Struct that maps a key to a cooldown and a category to handle activation of inputs 
 pub struct KeyMap {
-    key_text: String,
-    category: String,
-    cooldown: Option<u8>,
-    timer: u8,
+    pub key_text: String,
+    pub category: String,
+    pub cooldown: Option<u8>,
+    pub timer: u8,
 }
 
 // implementation of functionallities of InputStatus
