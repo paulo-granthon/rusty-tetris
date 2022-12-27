@@ -78,12 +78,24 @@ impl RustyTetris {
 
     // resets the game
     pub fn reset(&mut self) {
+
+        // create an empty playfield
         self.playfield = Self::create_playfield();
-        self.initialize_routines();
+
+        // set default game speed 
+        self.move_y_cooldown = DEFAULT_MOVE_Y_COOLDOWN;
+        
+        // register the input keys
         use super::InputHandler;
         self.register_inputs();
+
+        // register the routines 
+        self.initialize_routines();
+
+        // initialize the score to 0
         self.score = 0;
-        self.move_y_cooldown = DEFAULT_MOVE_Y_COOLDOWN;
+
+        // call next to start the game 
         self.next();
     }
     // define the next Tetromino of the match
@@ -117,8 +129,9 @@ impl RustyTetris {
                 println!("RustyTetris.skip() -- NO CURRENT TETROMINO (XD????)")
             },
             Some (t) => {
-                self.move_cur((0, self.get_skip_steps(&t)));
-                self.reset_timer("move_y", Some("game"));
+                let steps = self.get_skip_steps(&t);
+                self.move_cur((0, steps));
+                if steps > 0 { self.reset_timer("move_y", Some("game")); }
             }
         }
     }

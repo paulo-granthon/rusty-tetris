@@ -11,6 +11,7 @@ pub enum RTColor {
     Magenta,
     Cyan,
     Orange,
+    Grey,
 }
 
 use std::slice::Iter;
@@ -28,9 +29,10 @@ impl RTColor {
             Green   => ("green",    (92,    255,    92,     255)),
             Blue    => ("blue",     (92,    92,     255,    255)),
             Yellow  => ("yellow",   (255,   255,    92,     255)),
-            Magenta => ("magenta",  (255,    92,    255,    255)),
+            Magenta => ("magenta",  (255,   92,     255,    255)),
             Cyan    => ("cyan",     (92,    255,    255,    255)),
-            Orange  => ("orange",   (255,    92,    0,      255)),
+            Orange  => ("orange",   (255,   92,     0,      255)),
+            Grey    => ("grey",     (127,   127,    127,    255)),
         }
     }
 }
