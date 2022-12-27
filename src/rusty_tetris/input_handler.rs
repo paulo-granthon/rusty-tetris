@@ -1,7 +1,7 @@
 
 use doryen_rs::InputApi;
 
-use super::RustyTetris;
+use super::{RustyTetris, GameState};
 
 // Struct that maps a key to a cooldown and a category to handle activation of inputs 
 pub struct KeyMap {
@@ -62,7 +62,7 @@ pub trait InputHandler {
     fn register_inputs (&mut self);
 
     // to verify and trigger previously registered inputs 
-    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str);
+    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str) -> Option<GameState>;
 }
 
 // implement the InputHandler trait on RustyTetris
@@ -89,7 +89,7 @@ impl InputHandler for RustyTetris {
     }
 
     // verify and trigger inputs of frame
-    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str) {
+    fn handle_input(&mut self, input: &mut dyn InputApi, category: &str) -> Option<GameState> {
 
         // loop through all registered inputs
         for index in 0..self.inputmap.len() {
@@ -116,8 +116,7 @@ impl InputHandler for RustyTetris {
                 _=> println!("{}.handle_input: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.inputmap[index].key_text)
             }}
         }
-
-
+        None
 
     }
 }

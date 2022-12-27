@@ -5,15 +5,9 @@ use super::render::*;
 
 extern crate doryen_rs; use doryen_rs::{DoryenApi, UpdateEvent};
 
-pub enum GameEvent {
-    OK,
-    Quit,
-    State(GameState),
-}
-
 pub trait RustyEngine {
     fn init(&mut self);
-    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>);
+    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameState>, Option<UpdateEvent>);
     fn render(&mut self, api: &mut dyn DoryenApi);
 }
 
@@ -30,13 +24,11 @@ impl RustyEngine for RustyTetris {
     }
 
     // Called every frame
-    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
+    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameState>, Option<UpdateEvent>) {
 
         // get the current input
         let input = api.input();
-
         self.mouse_pos = input.mouse_pos();
-
         self.handle_input(input, "priority");
         
         if self.paused { return (None, None) }
@@ -72,58 +64,6 @@ impl RustyEngine for RustyTetris {
 
         self.rt_render(con);
 
-        // match &self.cur_con {
-        //     Some(x) => x.blit(self.cur_pos.0.into(), self.cur_pos.1.into(), con, 1.0, 1.0, None),
-        //     _=>{}
-        // }
-        // con.area(
-        //     10,
-        //     10,
-        //     5,
-        //     5,
-        //     Some((255, 64, 64, 255)),
-        //     Some((128, 32, 32, 255)),
-        //     Some('&' as u16),
-        // );
-        // con.ascii(0, 1, '@' as u16);
-        // // con.fore(self.player_pos.0, self.player_pos.1, (255, 255, 255, 255));
-        // con.print_color(
-        //     (CONSOLE_WIDTH / 2) as i32,
-        //     (CONSOLE_HEIGHT - 1) as i32,
-        //     "#[red]arrows#[white] : move - #[red]CTRL-S#[white] : save screenshot",
-        //     TextAlign::Center,
-        //     None,
-        // );
-        // con.print_color(
-        //     (CONSOLE_WIDTH / 2) as i32,
-        //     (CONSOLE_HEIGHT - 3) as i32,
-        //     &format!(
-        //         "#[white]Mouse coordinates: #[red]{}, {}",
-        //         self.mouse_pos.0, self.mouse_pos.1
-        //     ),
-        //     TextAlign::Center,
-        //     None,
-        // );
-        // con.print_color(
-        //     5,
-        //     5,
-        //     "#[blue]This blue text contains a #[red]red#[] word",
-        //     TextAlign::Left,
-        //     None,
-        // );
-        // con.back(
-        //     self.mouse_pos.0 as i32,
-        //     self.mouse_pos.1 as i32,
-        //     (255, 255, 255, 255),
-        // );
-        // render_block(
-        //     con, 
-        //     self.mouse_pos.0 as i32 / BLOCK_SCALE as i32, 
-        //     self.mouse_pos.1 as i32 / BLOCK_SCALE as i32, 
-        //     RTColor::White.value().1, 
-        //     BLOCK_SCALE as i32, 
-        //     0, 0
-        // );
     }
 
 }
