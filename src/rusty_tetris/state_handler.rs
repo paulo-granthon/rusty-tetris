@@ -1,5 +1,5 @@
 use doryen_rs::{Engine, DoryenApi, UpdateEvent};
-use super::RustyEngine;
+use super::{RustyEngine, GameEvent};
 
 pub enum GameState {
     MainMenu(super::MainMenu),
@@ -20,11 +20,11 @@ impl GameState {
             Self::Scores => {},
         }
     }
-    fn update(&mut self, api: &mut dyn DoryenApi) -> Option<UpdateEvent> {
+    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
         match self {
             Self::MainMenu(mm) => mm.update(api),
-            Self::Game(rt) => match rt { Some(game) => game.update(api), None => None},
-            Self::Scores => None,
+            Self::Game(rt) => match rt { Some(game) => game.update(api), None => (None, None)},
+            Self::Scores => (None, None),
         }
     }
     fn render(&mut self, api: &mut dyn DoryenApi) {
@@ -68,10 +68,18 @@ impl Engine for StateHandler {
     }
 
     fn update(&mut self, api: &mut dyn DoryenApi) -> Option<UpdateEvent> {
-        self.state.update(api)
+        // self.state.update(api)
 
-        // match self.state.update(api).0 { Some(e) => match e.type { SetState(state) => set_state(state), _=> {} }, _=>{} }
-        // 
+        let state_update_result = self.state.update(api);
+        match state_update_result.0 { 
+            Some(event) => {
+                match event {
+                    GameEvent::State(state) => self.set_state(state), _=>{},
+                }
+            },
+            _=>{}
+        }
+        state_update_result.1
     }
 
     fn render(&mut self, api: &mut dyn DoryenApi) {

@@ -1,3 +1,5 @@
+use super::GameEvent;
+
 
 pub struct MainMenu {
     pub cursor_pos: usize,
@@ -18,7 +20,7 @@ impl MainMenu {
             1 => println!("scores"),
             2 => println!("settings"),
             3 => println!("exit"),
-            _ => {} 
+            _ => {}
         }
     }
 }
@@ -26,8 +28,8 @@ impl MainMenu {
 impl super::RustyEngine for MainMenu {
     fn init(&mut self) {}
 
-    fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> Option<doryen_rs::UpdateEvent> {
-        todo!()
+    fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> (Option<GameEvent>, Option<doryen_rs::UpdateEvent>) {
+        (Some(GameEvent::State(super::GameState::Game(Some(super::RustyTetris::new())))), None)
     }
 
     fn render(&mut self, api: &mut dyn doryen_rs::DoryenApi) {

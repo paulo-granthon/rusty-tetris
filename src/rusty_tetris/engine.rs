@@ -1,13 +1,19 @@
-use super::{RustyTetris, RTColor};
+use super::{RustyTetris, RTColor, GameState};
 use super::routine_handler::*;
 use super::input_handler::*;
 use super::render::*;
 
 extern crate doryen_rs; use doryen_rs::{DoryenApi, UpdateEvent};
 
+pub enum GameEvent {
+    OK,
+    Quit,
+    State(GameState),
+}
+
 pub trait RustyEngine {
     fn init(&mut self);
-    fn update(&mut self, api: &mut dyn DoryenApi) -> Option<UpdateEvent>;
+    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>);
     fn render(&mut self, api: &mut dyn DoryenApi);
 }
 
@@ -24,7 +30,7 @@ impl RustyEngine for RustyTetris {
     }
 
     // Called every frame
-    fn update(&mut self, api: &mut dyn DoryenApi) -> Option<UpdateEvent> {
+    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
 
         // get the current input
         let input = api.input();
@@ -33,7 +39,7 @@ impl RustyEngine for RustyTetris {
 
         self.handle_input(input, "priority");
         
-        if self.paused { return None }
+        if self.paused { return (None, None) }
         
         // let game_speed = self.move_intent.1;
 
@@ -54,7 +60,7 @@ impl RustyEngine for RustyTetris {
         //         self.screenshot_idx
         //     )));
         // }
-        None
+        (None, None)
     }
 
     // master render method
