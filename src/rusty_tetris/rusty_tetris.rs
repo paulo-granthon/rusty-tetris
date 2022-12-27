@@ -4,6 +4,8 @@ use crate::Bag;
 
 use crate::DEBUG_MOVEMENT;
 
+const DEFAULT_MOVE_Y_COOLDOWN: u32 = 240;
+
 use super::HasBag;
 use super::routine_handler::RoutineHandler;
 // use super::HasBag;
@@ -56,7 +58,7 @@ impl RustyTetris {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
-            move_y_cooldown: 240,
+            move_y_cooldown: DEFAULT_MOVE_Y_COOLDOWN,
             bag_queue: None,
             cur_tetromino: Default::default(),
             cur_con: None,
@@ -81,6 +83,7 @@ impl RustyTetris {
         use super::InputHandler;
         self.register_inputs();
         self.score = 0;
+        self.move_y_cooldown = DEFAULT_MOVE_Y_COOLDOWN;
         self.next();
     }
     // define the next Tetromino of the match
@@ -245,7 +248,7 @@ impl RustyTetris {
 
                 // no lines cleared, exit loop
                 None => break
-            }                    
+            }
         }
 
         // if score is not 0

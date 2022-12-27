@@ -153,7 +153,7 @@ pub fn render_playfield<'a, const W: usize, const H: usize> (playfield_con: Opti
                 size.1,
                 Some((128, 128, 128, 255)),
                 Some((0, 0, 0, 255)),
-                Some('.' as u16),
+                Some(' ' as u16),
             );
 
             for x in 0..playfield.len() {
