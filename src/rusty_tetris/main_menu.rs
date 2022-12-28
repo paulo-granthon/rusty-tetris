@@ -1,6 +1,6 @@
 use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
 
-use super::{GameState, InputHandler, render_button, RTColor, RustyTetris};
+use super::{InputHandler, render_button, RTColor, GameEvent};
 
 const ACTIONS: &'static [(&'static str, RTColor); 5] = &[
     ("Play",        RTColor::Cyan),
@@ -18,20 +18,23 @@ pub struct MainMenu {
 impl MainMenu {
     pub fn new() -> Self { Self {cursor_pos: 0, inputmap: vec![] }}
 
-    fn move_cursor(&mut self, dir: i32) -> Option<GameState> {
-        self.cursor_pos = (self.cursor_pos as i32 + dir).max(0).min(ACTIONS.len() as i32 - 1) as usize;
-        println!("{}", self.cursor_pos);
+    fn set_cursor(&mut self, pos: i32) -> Option<GameEvent> {
+        self.cursor_pos = (pos).max(0).min(ACTIONS.len() as i32 - 1) as usize;
         None
     }
 
-    fn action (&self) -> Option<GameState> {
+    fn move_cursor(&mut self, dir: i32) -> Option<GameEvent> {
+        self.set_cursor(self.cursor_pos as i32 + dir)
+    }
+
+    fn action (&self) -> Option<GameEvent> {
         match ACTIONS[self.cursor_pos].0 {
 
-            "Play"      => return Some(GameState::Game(Some(RustyTetris::new()))),
+            "Play"      => return Some(GameEvent::new_game()),
             "Versus"    => return None,
             "Scores"    => return None,
             "Settings"  => return None,
-            "Exit"      => return None,
+            "Exit"      => return Some(GameEvent::Exit),
 
             _=> { println!("main_menu -- Error: unmapped action at cursor_pos '{}' ", self.cursor_pos); None }
         }
@@ -43,8 +46,7 @@ impl super::RustyEngine for MainMenu {
         self.register_inputs()
     }
 
-    fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> (Option<GameState>, Option<doryen_rs::UpdateEvent>) {
-        // (Some(GameState::Game(Some(super::RustyTetris::new()))), None)
+    fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> (Option<GameEvent>, Option<doryen_rs::UpdateEvent>) {
 
         let input = api.input();
         // self.mouse_pos = input.mouse_pos();
@@ -57,7 +59,7 @@ impl super::RustyEngine for MainMenu {
         con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
 
         let white_colr = RTColor::White.value().1;
-        let fore_color = RTColor::Grey.value().1;
+        let fore_color = RTColor::DarkerGrey.value().1;
         let black_colr = RTColor::Black.value().1;
 
         let half_con_height = CONSOLE_HEIGHT as i32 / 2;
@@ -87,12 +89,12 @@ impl super::InputHandler for MainMenu {
     fn register_inputs (&mut self) {
         self.inputmap = vec![
             super::KeyMap::new("Enter",         "", None ),
-            super::KeyMap::new("ArrowUp",       "", Some(12) ),
-            super::KeyMap::new("ArrowDown",     "", Some(12) ),
+            super::KeyMap::new("ArrowUp",       "", Some(4) ),
+            super::KeyMap::new("ArrowDown",     "", Some(4) ),
         ];
     }
 
-    fn handle_input(&mut self, input: &mut dyn doryen_rs::InputApi, _category: &str) -> Option<GameState> {
+    fn handle_input(&mut self, input: &mut dyn doryen_rs::InputApi, _category: &str) -> Option<GameEvent> {
 
         // loop through all registered inputs
         for index in 0..self.inputmap.len() {

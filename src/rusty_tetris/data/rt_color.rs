@@ -12,6 +12,8 @@ pub enum RTColor {
     Cyan,
     Orange,
     Grey,
+    DarkGrey,
+    DarkerGrey,
 }
 
 use std::slice::Iter;
@@ -23,16 +25,18 @@ impl RTColor {
     }
     pub fn value(&self) -> (&str, (u8, u8, u8, u8)) {
         match *self {
-            Black   => ("black",    (0,     0,      0,      255)),
-            White   => ("white",    (255,   255,    255,    255)),
-            Red     => ("red",      (255,   92,     92,     255)),
-            Green   => ("green",    (92,    255,    92,     255)),
-            Blue    => ("blue",     (92,    92,     255,    255)),
-            Yellow  => ("yellow",   (255,   255,    92,     255)),
-            Magenta => ("magenta",  (255,   92,     255,    255)),
-            Cyan    => ("cyan",     (92,    255,    255,    255)),
-            Orange  => ("orange",   (255,   92,     0,      255)),
-            Grey    => ("grey",     (127,   127,    127,    255)),
+            Black       => ("black",        (0,     0,      0,      255)),
+            White       => ("white",        (255,   255,    255,    255)),
+            Red         => ("red",          (255,   92,     92,     255)),
+            Green       => ("green",        (92,    255,    92,     255)),
+            Blue        => ("blue",         (92,    92,     255,    255)),
+            Yellow      => ("yellow",       (255,   255,    92,     255)),
+            Magenta     => ("magenta",      (255,   92,     255,    255)),
+            Cyan        => ("cyan",         (92,    255,    255,    255)),
+            Orange      => ("orange",       (255,   92,     0,      255)),
+            Grey        => ("grey",         (127,   127,    127,    255)),
+            DarkGrey    => ("dark_grey",    (92,    92,     92,     255)),
+            DarkerGrey  => ("darker_grey",  (46,    46,     46,     255)),
         }
     }
 }

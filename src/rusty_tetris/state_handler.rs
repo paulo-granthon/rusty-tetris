@@ -7,6 +7,18 @@ pub enum GameState {
     Scores,
 }
 
+pub enum GameEvent {
+    State(GameState),
+    Exit,
+}
+
+impl GameEvent {
+
+    pub fn new_game() -> Self {
+        GameEvent::State(GameState::Game(Some(super::RustyTetris::new())))
+    }
+}
+
 impl GameState {
     // pub fn iter() -> std::slice::Iter<'static, GameState> {
     //     static STATES: [GameState; 3] = [GameState::MainMenu, GameState::Game(None), GameState::Scores];
@@ -20,7 +32,7 @@ impl GameState {
             Self::Scores => {},
         }
     }
-    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameState>, Option<UpdateEvent>) {
+    fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
         match self {
             Self::MainMenu(mm) => mm.update(api),
             Self::Game(rt) => match rt { Some(game) => game.update(api), None => (None, None)},
@@ -72,7 +84,11 @@ impl Engine for StateHandler {
 
         let state_update_result = self.state.update(api);
         match state_update_result.0 { 
-            Some(state) => self.set_state(state),
+            Some(event) => match event {
+                GameEvent::State(state) => self.set_state(state),
+                GameEvent::Exit => return Some(UpdateEvent::Exit),
+                // _=>{}
+            },
             _=>{}
         }
         state_update_result.1
