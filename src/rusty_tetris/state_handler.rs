@@ -20,7 +20,7 @@ impl GameEvent {
         GameEvent::State(GameState::Game(Some(super::RustyTetris::new())))
     }
     pub fn new_game_versus() -> Self {
-        GameEvent::State(GameState::Versus(Some(super::RustyTetris::new()), Some(super::RustyTetris::new())))
+        GameEvent::State(GameState::Versus(Some(super::RustyTetris::versus(0)), Some(super::RustyTetris::versus(1))))
     }
 
 }
@@ -36,8 +36,8 @@ impl GameState {
             Self::MainMenu(mm) => mm.init(),
             Self::Game(rt) => match rt { Some(game) => game.init(), None => {}},
             Self::Versus(rt0, rt1) => {
-                match rt0 { Some(game) => game.init_versus(0), None => {}};
-                match rt1 { Some(game) => game.init_versus(1), None => {}};
+                match rt0 { Some(game) => game.init(), None => {}};
+                match rt1 { Some(game) => game.init(), None => {}};
             }
             Self::Scores => {},
         }
@@ -47,8 +47,8 @@ impl GameState {
             Self::MainMenu(mm) => mm.update(api),
             Self::Game(rt) => match rt { Some(game) => game.update(api), None => (None, None)},
             Self::Versus(rt0, rt1) => {
-                match rt0 { Some(game) => game.update(api), None => (None, None)};
-                match rt1 { Some(game) => game.update(api), None => (None, None)};
+                let _ = match rt0 { Some(game0) => game0.update(api), None => (None, None)};
+                let _ = match rt1 { Some(game1) => game1.update(api), None => (None, None)};
                 (None, None)
             }
             Self::Scores => (None, None),
@@ -59,8 +59,8 @@ impl GameState {
             Self::MainMenu(mm) => mm.render(api),
             Self::Game(rt) => match rt { Some(game) => game.render(api), None => {}},
             Self::Versus(rt0, rt1) => {
-                match rt0 { Some(game) => game.render(api), None => {}};
-                match rt1 { Some(game) => game.render(api), None => {}};
+                match rt0 { Some(game0) => game0.render(api), None => {}};
+                match rt1 { Some(game1) => game1.render(api), None => {}};
             }
             Self::Scores => {},
         }

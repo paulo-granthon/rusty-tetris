@@ -38,20 +38,12 @@ pub struct RustyTetris {
     pub mouse_pos: (f32, f32),
     pub inputmap: Vec::<super::KeyMap>,
     pub routines: Vec::<super::Routine>,
+    pub player: Option<usize>,
 
 }
 
 // engine implementation
 impl RustyTetris {
-
-    // initialize for versus mode
-    pub fn init_versus (&mut self, player: usize) {
-        self.register_inputs(player);
-        self.initialize_routines();
-
-        // get the first Tetromino for the match
-        self.next();
-    }
 
     // creates a blank playfield
     fn create_playfield() -> [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize] {
@@ -65,6 +57,17 @@ impl RustyTetris {
 
     // create a new instance
     pub fn new() -> Self {
+        Self::for_player(None)
+    }
+
+    // create a new instance for Some player
+    pub fn versus (player: usize) -> Self {
+        println!("new rusty tetris instance for player {}", player);
+        Self::for_player(Some(player))
+    }
+    
+    // create a new instance with defined player
+    pub fn for_player (player: Option<usize>) -> Self {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
@@ -80,9 +83,10 @@ impl RustyTetris {
             mouse_pos: (0.0,0.0),
             inputmap: vec![],
             routines: vec![],
+            player,
         }
     }
-
+    
     // pauses / resumes the game
     pub fn pause (&mut self) { self.paused = !self.paused }
 
@@ -97,7 +101,7 @@ impl RustyTetris {
         
         // register the input keys
         // use super::InputHandler;
-        self.register_inputs(0);
+        self.register_inputs();
 
         // register the routines 
         self.initialize_routines();

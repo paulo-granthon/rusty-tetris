@@ -1,6 +1,6 @@
 use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
 
-use super::{InputHandler, render_button, RTColor, GameEvent, render_logo, Alpha};
+use super::{InputHandler, render_button, RTColor, GameEvent, render_logo};
 
 const ACTIONS: &'static [(&'static str, RTColor); 5] = &[
     ("Play",        RTColor::Cyan),
@@ -43,7 +43,7 @@ impl MainMenu {
 
 impl super::RustyEngine for MainMenu {
     fn init(&mut self) {
-        self.register_inputs(0)
+        self.register_inputs()
     }
 
     fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> (Option<GameEvent>, Option<doryen_rs::UpdateEvent>) {
@@ -88,7 +88,7 @@ impl super::RustyEngine for MainMenu {
 }
 
 impl super::InputHandler for MainMenu {
-    fn register_inputs (&mut self, _:usize) {
+    fn register_inputs (&mut self) {
         self.inputmap = vec![
             super::KeyMap::new("Enter",         "", None ),
             super::KeyMap::new("ArrowUp",       "", Some(4) ),
