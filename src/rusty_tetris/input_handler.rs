@@ -55,14 +55,14 @@ impl KeyMap {
 
 }
 
-const CONTROLLER: [[&str; 2]; 7] = [
-    ["KeyQ",        "Coma"   ],
-    ["KeyE",        "Period" ],
-    ["ArrowUp",     "Numpad8"],
-    ["ArrowDown",   "Numpad5"],
-    ["ArrowLeft",   "Numpad4"],
-    ["ArrowRight",  "Numpad6"],
-    ["Space",       "KeyM"   ],
+const CONTROLLER: [[&str; 3]; 7] = [
+    ["ArrowUp",     "ArrowUp",     "KeyI"],
+    ["ArrowDown",   "ArrowDown",   "KeyK"],
+    ["ArrowLeft",   "ArrowLeft",   "KeyJ"],
+    ["ArrowRight",  "ArrowRight",  "KeyL"],
+    ["KeyW",        "KeyB",        "KeyW"],
+    ["KeyE",        "KeyN",        "KeyE"],
+    ["KeyQ",        "KeyV",        "KeyQ"],
 ];
 
 // defines the InputHandler trait to state the following functions on a Struct that implements it
@@ -81,6 +81,7 @@ impl InputHandler for RustyTetris {
     // register the game inputs 
     fn register_inputs (&mut self) {
         let player = match self.player { Some(p) => p, None=> 0 };
+        // let player = 1;
         println!("inputmap init for player {}: ", player);
 
         println!("CONTROLLER[0][player]: {}", CONTROLLER[0][player]);
@@ -96,13 +97,13 @@ impl InputHandler for RustyTetris {
             // KeyMap::new("Backspace",                "priority", None ),
             KeyMap::new("Enter",                    "priority", None ),
 
-            KeyMap::new(CONTROLLER[0][player],     "game", Some(6) ),
-            KeyMap::new(CONTROLLER[1][player],     "game", Some(6) ),
-            KeyMap::new(CONTROLLER[2][player],     "game", Some(0) ),
-            KeyMap::new(CONTROLLER[3][player],     "game", Some(0) ),
-            KeyMap::new(CONTROLLER[4][player],     "game", Some(6) ),
-            KeyMap::new(CONTROLLER[5][player],     "game", Some(6) ),
-
+            KeyMap::new(CONTROLLER[0][player],     "game", Some(0) ),
+            KeyMap::new(CONTROLLER[1][player],     "game", Some(0) ),
+            KeyMap::new(CONTROLLER[2][player],     "game", Some(6) ),
+            KeyMap::new(CONTROLLER[3][player],     "game", Some(6) ),
+            
+            KeyMap::new(CONTROLLER[4][player],     "game", Some(8) ),
+            KeyMap::new(CONTROLLER[5][player],     "game", Some(8) ),
             KeyMap::new(CONTROLLER[6][player],     "game", None ),
 
         ];
@@ -122,6 +123,7 @@ impl InputHandler for RustyTetris {
 
                 let key = self.inputmap[index].key_text.as_str();
                 let player = match self.player { Some(p) => p, None=> 0 };
+                // let player = 1;
 
                 if key == "" {}
 
@@ -130,12 +132,12 @@ impl InputHandler for RustyTetris {
                 else if key == "Enter"                    { self.pause() }
 
                 // default game inputs (checked if not paused)
-                else if key == CONTROLLER[0][player] { self.rotate(true) }
-                else if key == CONTROLLER[1][player] { self.rotate(false) }
-                else if key == CONTROLLER[2][player] { self.intent_y(2) }
-                else if key == CONTROLLER[3][player] { self.intent_y(16) }
-                else if key == CONTROLLER[4][player] { self.intent_x(-1) }
-                else if key == CONTROLLER[5][player] { self.intent_x(1) }
+                else if key == CONTROLLER[0][player] { self.intent_y(2) }
+                else if key == CONTROLLER[1][player] { self.intent_y(16) }
+                else if key == CONTROLLER[2][player] { self.intent_x(-1) }
+                else if key == CONTROLLER[3][player] { self.intent_x(1) }
+                else if key == CONTROLLER[4][player] { self.rotate(true) }
+                else if key == CONTROLLER[5][player] { self.rotate(false) }
                 else if key == CONTROLLER[6][player] { self.skip() }
 
                 // no key ? probably a overlook

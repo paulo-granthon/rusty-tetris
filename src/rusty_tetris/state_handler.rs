@@ -20,7 +20,7 @@ impl GameEvent {
         GameEvent::State(GameState::Game(Some(super::RustyTetris::new())))
     }
     pub fn new_game_versus() -> Self {
-        GameEvent::State(GameState::Versus(Some(super::RustyTetris::versus(0)), Some(super::RustyTetris::versus(1))))
+        GameEvent::State(GameState::Versus(Some(super::RustyTetris::versus(1)), Some(super::RustyTetris::versus(2))))
     }
 
 }
