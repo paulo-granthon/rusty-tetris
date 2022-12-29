@@ -1,6 +1,6 @@
 use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
 
-use super::{InputHandler, render_button, RTColor, GameEvent};
+use super::{InputHandler, render_button, RTColor, GameEvent, render_logo, Alpha};
 
 const ACTIONS: &'static [(&'static str, RTColor); 5] = &[
     ("Play",        RTColor::Cyan),
@@ -31,7 +31,7 @@ impl MainMenu {
         match ACTIONS[self.cursor_pos].0 {
 
             "Play"      => return Some(GameEvent::new_game()),
-            "Versus"    => return None,
+            "Versus"    => return Some(GameEvent::new_game_versus()),
             "Scores"    => return None,
             "Settings"  => return None,
             "Exit"      => return Some(GameEvent::Exit),
@@ -43,7 +43,7 @@ impl MainMenu {
 
 impl super::RustyEngine for MainMenu {
     fn init(&mut self) {
-        self.register_inputs()
+        self.register_inputs(0)
     }
 
     fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> (Option<GameEvent>, Option<doryen_rs::UpdateEvent>) {
@@ -58,12 +58,14 @@ impl super::RustyEngine for MainMenu {
         let con = api.con();
         con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
 
+        let half_con_height = CONSOLE_HEIGHT as i32 / 2;
+        let half_con_width  = CONSOLE_WIDTH as i32  / 2;
+
+        render_logo(con, half_con_width, 1);
+
         let white_colr = RTColor::White.value().1;
         let fore_color = RTColor::DarkerGrey.value().1;
         let black_colr = RTColor::Black.value().1;
-
-        let half_con_height = CONSOLE_HEIGHT as i32 / 2;
-        let half_con_width  = CONSOLE_WIDTH as i32  / 2;
 
         let menu_height = ACTIONS.len() as i32 * 3;
 
@@ -86,7 +88,7 @@ impl super::RustyEngine for MainMenu {
 }
 
 impl super::InputHandler for MainMenu {
-    fn register_inputs (&mut self) {
+    fn register_inputs (&mut self, _:usize) {
         self.inputmap = vec![
             super::KeyMap::new("Enter",         "", None ),
             super::KeyMap::new("ArrowUp",       "", Some(4) ),

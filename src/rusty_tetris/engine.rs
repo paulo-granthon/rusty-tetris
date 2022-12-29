@@ -16,7 +16,7 @@ impl RustyEngine for RustyTetris {
 
     // initialize the engine
     fn init(&mut self) {
-        self.register_inputs();
+        self.register_inputs(0);
         self.initialize_routines();
 
         // get the first Tetromino for the match

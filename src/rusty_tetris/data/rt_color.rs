@@ -1,6 +1,7 @@
 const COUNT: usize = 9;
 
 #[derive(Copy, Clone)]
+#[allow(dead_code)]
 pub enum RTColor {
     Black,
     White,
@@ -44,6 +45,7 @@ impl RTColor {
 pub trait Alpha {
     fn no_alpha(&self) -> Self;
     fn alpha(&self, a: u8) -> Self;
+    fn dim (&self, d: u8) -> Self;
 }
 
 impl Alpha for (u8, u8, u8, u8) {
@@ -52,5 +54,8 @@ impl Alpha for (u8, u8, u8, u8) {
     }
     fn alpha(&self, a: u8) -> Self {
         (self.0, self.1, self.2, a)
+    }
+    fn dim (&self, d: u8) -> Self {
+        (self.0 / d, self.1 / d, self.2 / d, self.3)        
     }
 }

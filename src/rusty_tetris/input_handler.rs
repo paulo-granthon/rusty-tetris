@@ -59,7 +59,7 @@ impl KeyMap {
 pub trait InputHandler {
 
     // to register the inputs that should be verified
-    fn register_inputs (&mut self);
+    fn register_inputs (&mut self, player: usize);
 
     // to verify and trigger previously registered inputs 
     fn handle_input(&mut self, input: &mut dyn InputApi, category: &str) -> Option<GameEvent>;
@@ -69,7 +69,7 @@ pub trait InputHandler {
 impl InputHandler for RustyTetris {
 
     // register the game inputs 
-    fn register_inputs (&mut self) {
+    fn register_inputs (&mut self, player: usize) {
         self.inputmap = vec![
 
             KeyMap::new("Backspace",     "priority", Some(0) ),

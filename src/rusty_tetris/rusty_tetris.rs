@@ -7,6 +7,7 @@ use crate::DEBUG_MOVEMENT;
 const DEFAULT_MOVE_Y_COOLDOWN: u32 = 240;
 
 use super::HasBag;
+use super::InputHandler;
 use super::routine_handler::RoutineHandler;
 // use super::HasBag;
 
@@ -42,6 +43,15 @@ pub struct RustyTetris {
 
 // engine implementation
 impl RustyTetris {
+
+    // initialize for versus mode
+    pub fn init_versus (&mut self, player: usize) {
+        self.register_inputs(player);
+        self.initialize_routines();
+
+        // get the first Tetromino for the match
+        self.next();
+    }
 
     // creates a blank playfield
     fn create_playfield() -> [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize] {
@@ -86,8 +96,8 @@ impl RustyTetris {
         self.move_y_cooldown = DEFAULT_MOVE_Y_COOLDOWN;
         
         // register the input keys
-        use super::InputHandler;
-        self.register_inputs();
+        // use super::InputHandler;
+        self.register_inputs(0);
 
         // register the routines 
         self.initialize_routines();
