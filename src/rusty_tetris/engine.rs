@@ -60,7 +60,6 @@ impl RustyEngine for RustyTetris {
         
         // initialize the console
         let con = api.con();
-        con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
 
         self.rt_render(con);
 

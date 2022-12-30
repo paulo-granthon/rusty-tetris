@@ -34,10 +34,27 @@ impl RenderEngine for super::RustyTetris {
 
         let paused = self.paused;
 
-        let player_x_offset = match self.player { Some(player) => (R_PLAYFIELD_SIZE_X as i32 / 2) * -((player as i32 * 2) - 1) + 10, _=> 0 };
-        // println!("{}: {}", match self.player { Some(p) => p, _=> 666 }, player_x_offset);
+        let side = match self.player { Some(p) => ((p as i32 - 1) * 2) - 1, _=> 0 };
+
+        // println!("{}", side);
+
+        let player_x_offset = (R_PLAYFIELD_SIZE_X as i32 / 2) * side;
+        // let p = match self.player { Some(p) => p, _=> 666 };
+        // println!("{}: {} | ({}/2) * {}", p, player_x_offset, R_PLAYFIELD_SIZE_X, ((p - 1) as i32 * 2) - 1);
         // println!("pf_con blit for player {}: {}", self.player.unwrap(), R_PLAYFIELD_X + player_x_offset);
-        // if self.player == Some(0) { return }
+        // if self.player == Some(1) { return }
+
+
+        // self.player = Some(1);
+
+        let block_scale = BLOCK_SCALE as i32;
+        let _half_pf_width = PLAYFIELD_WIDTH as i32 / 2;
+        let half_pf_height = PLAYFIELD_HEIGHT as i32 / 2;
+
+        let half_con_width = CONSOLE_WIDTH as i32 / 2;
+        let half_con_height = CONSOLE_HEIGHT as i32 / 2;
+
+        con.back( half_con_width + player_x_offset, 0, RTColor::Orange.value().1);
 
         match render_playfield(self.playfield_con.as_mut(), &self.playfield, BLOCK_SCALE as i32, !paused) {
             Some(pfcon) => {
@@ -56,13 +73,6 @@ impl RenderEngine for super::RustyTetris {
         // get a reference to the current position of the Tetromino
         let cur_pos = (self.cur_pos.0 + player_x_offset as i8, self.cur_pos.1 );
 
-        let block_scale = BLOCK_SCALE as i32;
-        let half_pf_width = PLAYFIELD_WIDTH as i32 / 2;
-        let half_pf_height = PLAYFIELD_HEIGHT as i32 / 2;
-
-        let half_con_width = CONSOLE_WIDTH as i32 / 2;
-        let half_con_height = CONSOLE_HEIGHT as i32 / 2;
-
         // render the score
         render_score(con, half_con_width + player_x_offset, half_pf_height, self.score);
 
@@ -80,7 +90,7 @@ impl RenderEngine for super::RustyTetris {
         match render_tetromino(t_con, &self.cur_tetromino, (0, 0), block_scale, white) {
             Some(cur_con) => {
                 cur_con.blit(
-                    half_con_width + player_x_offset + ((cur_pos.0 as i32 - half_pf_width) * block_scale),
+                    R_PLAYFIELD_X - player_x_offset + (1 + cur_pos.0 as i32 * block_scale) ,
                     half_con_height + (cur_pos.1 as i32 - half_pf_height) * block_scale,
                     con, 
                     1.0,
@@ -88,7 +98,7 @@ impl RenderEngine for super::RustyTetris {
                     if DEBUG_RENDER {None} else {white}
                 );
                 cur_con.blit(
-                    half_con_width + player_x_offset + ((cur_pos.0 as i32 - half_pf_width) * block_scale),
+                    R_PLAYFIELD_X - player_x_offset + (1 + cur_pos.0 as i32 * block_scale) ,
                     half_con_height + ((cur_pos.1 + s) as i32 - half_pf_height) * block_scale,
                     con, 
                     0.3,
@@ -129,8 +139,9 @@ impl RenderEngine for super::RustyTetris {
                     (NEXT_CON_WIDTH as i8 - nt_heigth as i8) - 1,
                 ), block_scale, white) {
                     Some(nt_con) => {
+                        const R_HALF_PF_SIZE_X_I32: i32 = R_PLAYFIELD_SIZE_X as i32 / 2;
                         nt_con.blit(
-                            half_con_width + ((R_PLAYFIELD_SIZE_X as i32 / 2) * match self.player { Some(p) => -((p as i32) * 2) - 1, _=> 1}),
+                            half_con_width + player_x_offset + (R_HALF_PF_SIZE_X_I32 * (1 - side.abs())) - (R_HALF_PF_SIZE_X_I32 * -side) + ((NEXT_CON_WIDTH as i32 * 2) * side.min(0)),
                             half_con_height + (R_PLAYFIELD_SIZE_Y as i32 / 2) - (NEXT_CON_HEIGHT as i32 * block_scale),
                             con, 
                             1.0,

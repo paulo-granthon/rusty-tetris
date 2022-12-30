@@ -47,20 +47,21 @@ impl GameState {
             Self::MainMenu(mm) => mm.update(api),
             Self::Game(rt) => match rt { Some(game) => game.update(api), None => (None, None)},
             Self::Versus(rt0, rt1) => {
-                let _ = match rt0 { Some(game0) => game0.update(api), None => (None, None)};
-                let _ = match rt1 { Some(game1) => game1.update(api), None => (None, None)};
+                let _ = match rt0 { Some(game0) => {game0.update(api); }, None => {}};
+                let _ = match rt1 { Some(game1) => {game1.update(api); }, None => {}};
                 (None, None)
             }
             Self::Scores => (None, None),
         }
     }
     fn render(&mut self, api: &mut dyn DoryenApi) {
+        api.con().clear(Some(super::RTColor::Black.value().1), Some(super::RTColor::Black.value().1), Some(' ' as u16));
         match self {
             Self::MainMenu(mm) => mm.render(api),
             Self::Game(rt) => match rt { Some(game) => game.render(api), None => {}},
             Self::Versus(rt0, rt1) => {
-                match rt0 { Some(game0) => game0.render(api), None => {}};
-                match rt1 { Some(game1) => game1.render(api), None => {}};
+                match rt0 { Some(game0) => {game0.render(api);}, None => {}};
+                match rt1 { Some(game1) => {game1.render(api);}, None => {}};
             }
             Self::Scores => {},
         }
