@@ -59,7 +59,7 @@ impl RustyEngine for RustyTetris {
             super::RunState::Over => {
                 // return GameEvent to return to MainMenu on keypress
                 // self.reset()
-                return (Some(GameEvent::main_menu()), None);
+                return (self.handle_input(input, "over"), None);
             },
             // _=> {}
         }

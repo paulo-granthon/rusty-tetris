@@ -96,7 +96,7 @@ impl InputHandler for RustyTetris {
 
             // KeyMap::new("Backspace",                "priority", None ),
             KeyMap::new("Enter",                    "priority", None ),
-
+            
             KeyMap::new(CONTROLLER[0][player],     "game", Some(0) ),
             KeyMap::new(CONTROLLER[1][player],     "game", Some(0) ),
             KeyMap::new(CONTROLLER[2][player],     "game", Some(6) ),
@@ -105,6 +105,8 @@ impl InputHandler for RustyTetris {
             KeyMap::new(CONTROLLER[4][player],     "game", Some(8) ),
             KeyMap::new(CONTROLLER[5][player],     "game", Some(8) ),
             KeyMap::new(CONTROLLER[6][player],     "game", None ),
+
+            KeyMap::new("Enter",                    "over", None ),
 
         ];
 
@@ -129,7 +131,10 @@ impl InputHandler for RustyTetris {
 
                 // priority (checked before paused)
                 else if key == "Backspace"                { self.reset() }
-                else if key == "Enter"                    { self.pause() }
+                else if key == "Enter" { 
+                    if self.inputmap[index].category == "over".to_owned() { return Some(GameEvent::main_menu()); }
+                    else { self.pause(); }
+                }
 
                 // default game inputs (checked if not paused)
                 else if key == CONTROLLER[0][player] { self.intent_y(2) }

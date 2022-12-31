@@ -19,7 +19,8 @@ impl MainMenu {
     pub fn new() -> Self { Self {cursor_pos: 0, inputmap: vec![] }}
 
     fn set_cursor(&mut self, pos: i32) -> Option<GameEvent> {
-        self.cursor_pos = (pos).max(0).min(ACTIONS.len() as i32 - 1) as usize;
+        let len = ACTIONS.len() as i32;
+        self.cursor_pos = (((pos % len) + len) % len) as usize;
         None
     }
 

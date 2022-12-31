@@ -12,6 +12,7 @@ use crate::CONSOLE_HEIGHT;
 
 use crate::PLAYFIELD_WIDTH;
 use crate::PLAYFIELD_HEIGHT;
+use crate::rusty_tetris::RunState;
 
 // render position of the playfield
 const R_PLAYFIELD_X: i32 = CONSOLE_WIDTH as i32 / 2 - (PLAYFIELD_WIDTH * BLOCK_SCALE) as i32 / 2 - 1;
@@ -36,7 +37,7 @@ impl RenderEngine for super::RustyTetris {
 
         let side = match self.player { Some(p) => ((p as i32 - 1) * 2) - 1, _=> 0 };
 
-        let player_x_offset = (R_PLAYFIELD_SIZE_X as i32 / 2) * side;
+        let player_x_offset = ((R_PLAYFIELD_SIZE_X as i32 / 2) + 1) * side;
 
         let block_scale = BLOCK_SCALE as i32;
         let _half_pf_width = PLAYFIELD_WIDTH as i32 / 2;
@@ -67,10 +68,18 @@ impl RenderEngine for super::RustyTetris {
         // render the score
         render_score(con, half_con_width + player_x_offset, half_pf_height, self.score);
 
-        if paused {
-            render_paused_popup(con, half_con_width + player_x_offset, half_con_height, 24, 7);
-            return;
-        }
+        if match self.run_state {
+            RunState::Paused => {
+                render_paused_popup(con, half_con_width + player_x_offset, half_con_height, 24, 7);
+                true
+            },
+            RunState::Over => {
+                render_game_over_popup(con, half_con_width + player_x_offset, half_con_height, 24, 7);
+                con.print(half_con_width + player_x_offset, half_con_height + 1, format!("Scored {} points!", &self.score).as_str(), doryen_rs::TextAlign::Center, Some(RTColor::Red.value().1), None);
+                true
+            }
+            _=> false
+        } { return; }
 
         let white = Some(RTColor::White.value().1);
 
@@ -270,17 +279,61 @@ fn render_score (con: &mut Console, x: i32, y: i32, score: i32) {
     );
 }
 
+#[allow(dead_code)]
+enum Align { 
+    Start,
+    Fraction(i32),
+    End,
+    Custom(i32)
+}
+
+impl Align {
+
+    // short for Fraction(2)
+    fn center () -> Self { Align::Fraction(2) }
+
+    // short for (Fraction(2), Fraction(2))
+    fn center2 () -> (Self, Self) { (Align::center(), Align::center()) } 
+
+    // returns the i32 value of the Align for the given range 
+    fn value (&self, size: i32) -> i32 {
+        match &self {
+            Align::Start => 0,
+            Align::Fraction(x) => if x.to_owned() == 0 {0} else {size / x},
+            Align::End => size,
+            Align::Custom(x) => x.to_owned(),
+        }
+    }
+}
+
 // renders a popup stating that the game is paused
-fn render_paused_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
+fn render_popup_window (
+    con: &mut Console,
+    x: i32, y: i32, w: u32, h: u32,
+    anchor: (Align, Align),
+    fore: Option<(u8, u8, u8, u8)>,
+    back: Option<(u8, u8, u8, u8)>, 
+    bg_char: Option<u16>
+) {
     con.rectangle(
-        x - (w as i32 / 2),
-        y - (h as i32 / 2),
+        x - anchor.0.value(w as i32),
+        y - anchor.1.value(h as i32),
         w,
         h,
-        Some(RTColor::Grey.value().1),
-        Some(RTColor::Black.value().1),
-        Some('/' as u16)
+        fore,
+        back,
+        bg_char
     );
 
+}
+
+fn render_paused_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
+    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.value().1), Some(RTColor::Black.value().1), Some('/' as u16));
     con.print(x, y, "Paused", doryen_rs::TextAlign::Center, Some(RTColor::White.value().1), None);
+}
+
+fn render_game_over_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
+    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
+    con.print(x, y, "Game Over", doryen_rs::TextAlign::Center, Some(RTColor::White.value().1), None);
+    // con.print(x, y, "Game Over", doryen_rs::TextAlign::Center, Some(RTColor::White.value().1), None);
 }
