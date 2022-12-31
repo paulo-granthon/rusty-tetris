@@ -1,4 +1,4 @@
-use super::{RustyTetris, RTColor, GameEvent};
+use super::{RustyTetris, GameEvent};
 use super::routine_handler::*;
 use super::input_handler::*;
 use super::render::*;
@@ -29,30 +29,44 @@ impl RustyEngine for RustyTetris {
         // get the current input
         let input = api.input();
         self.mouse_pos = input.mouse_pos();
-        self.handle_input(input, "priority");
         
-        if self.paused { return (None, None) }
         
-        // let game_speed = self.move_intent.1;
+        // match the current state of the run
+        match self.run_state {
 
-        // self.handle_routines("end");
+            // Allow player to position and rotate piece freely without y movement until player presses up/down or skip
+            super::RunState::Start => {
+                self.handle_input(input, "priority");
+                self.handle_input(input, "game");
+                self.handle_routines("priority");
+            },
 
-        self.handle_input(input, "game");
-        self.handle_routines("game");
+            // also handle inputs but also calls routines to move y
+            super::RunState::Playing => {
+                self.handle_input(input, "priority");
+                self.handle_input(input, "game");
+                self.handle_routines("priority");
+                self.handle_routines("game");
+            },
 
-        // self.check_game_status();
+            // handles inputs specific to the state and maybe return GameEvent
+            super::RunState::Paused => {
+                self.handle_input(input, "priority");
+                // paused should open a menu with the option to quit the run, that would return GameEvent
+            },
 
-        // self.handle_input(input, "game");
-
-        // capture the screen
-        // if input.key("F12") && input.key_pressed("KeyS") {
-        //     self.screenshot_idx += 1;
-        //     return Some(UpdateEvent::Capture(format!(
-        //         "screenshot_{:03}.png",
-        //         self.screenshot_idx
-        //     )));
-        // }
+            // handle input and return GameEvent on input
+            super::RunState::Over => {
+                // return GameEvent to return to MainMenu on keypress
+                // self.reset()
+                return (Some(GameEvent::main_menu()), None);
+            },
+            // _=> {}
+        }
+        
+        // if update reaches this point, return None as the resulting GameEvent
         (None, None)
+
     }
 
     // master render method

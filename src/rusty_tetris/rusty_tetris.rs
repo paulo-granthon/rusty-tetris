@@ -22,6 +22,14 @@ pub const PLAYFIELD_HEIGHT: u8 = 24;
 // defines the size of each block of a Tetromino
 pub const BLOCK_SCALE: u8 = 2;
 
+// enum that defines the current state of a RustyTetris run
+pub enum RunState {
+    Start,
+    Playing,
+    Paused,
+    Over,
+}
+
 // Rusty Tetris engine definition
 pub struct RustyTetris {
     pub playfield: [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize],
@@ -34,7 +42,7 @@ pub struct RustyTetris {
     pub cur_pos: (i8, i8),
     pub move_intent: (i8, i8),
     pub score: i32,
-    pub paused: bool,
+    pub run_state: RunState,
     pub mouse_pos: (f32, f32),
     pub inputmap: Vec::<super::KeyMap>,
     pub routines: Vec::<super::Routine>,
@@ -56,18 +64,18 @@ impl RustyTetris {
     }
 
     // create a new instance
-    pub fn new() -> Self {
-        Self::for_player(None)
+    pub fn singleplayer () -> Self {
+        Self::new(None)
     }
 
     // create a new instance for Some player
     pub fn versus (player: usize) -> Self {
         println!("new rusty tetris instance for player {}", player);
-        Self::for_player(Some(player))
+        Self::new(Some(player))
     }
     
     // create a new instance with defined player
-    pub fn for_player (player: Option<usize>) -> Self {
+    pub fn new (player: Option<usize>) -> Self {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
@@ -79,16 +87,27 @@ impl RustyTetris {
             cur_pos: (0, 0),
             move_intent: (0, 1),
             score: 0,
-            paused: false,
+            run_state: RunState::Start,
             mouse_pos: (0.0,0.0),
             inputmap: vec![],
             routines: vec![],
             player,
         }
     }
+
+    // sets the state of the run
+    pub fn set_state (&mut self, new_state: RunState) {
+        self.run_state = new_state;
+    }
     
     // pauses / resumes the game
-    pub fn pause (&mut self) { self.paused = !self.paused }
+    pub fn pause (&mut self) {
+        match self.run_state {
+            RunState::Playing => self.set_state(RunState::Paused),
+            RunState::Paused => self.set_state(RunState::Playing),
+            _=> {}
+        }
+    }
 
     // resets the game
     pub fn reset(&mut self) {
@@ -109,9 +128,13 @@ impl RustyTetris {
         // initialize the score to 0
         self.score = 0;
 
+        // initialize state back to Start
+        self.run_state = RunState::Start;
+
         // call next to start the game 
         self.next();
     }
+    
     // define the next Tetromino of the match
     pub fn next (&mut self) {
         let t = self.bag_next();
@@ -123,7 +146,9 @@ impl RustyTetris {
         
         self.next_con = Some(Console::new(6 * BLOCK_SCALE as u32, 8 * BLOCK_SCALE as u32));
 
-        if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 { self.reset() };
+        if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 {
+            self.set_state(RunState::Over) 
+        };
     }
 
     pub fn get_skip_steps (&self, t: &Tetromino) -> i8 {
@@ -138,16 +163,22 @@ impl RustyTetris {
 
     // skips to the next tetromino, finishing the trajectory of the current
     pub fn skip (&mut self) {
+        let mut start_run = false;
         match &self.cur_tetromino {
             None => {
                 println!("RustyTetris.skip() -- NO CURRENT TETROMINO (XD????)")
             },
             Some (t) => {
+                match self.run_state {
+                    RunState::Start => start_run = true,
+                    _=> {}
+                }        
                 let steps = self.get_skip_steps(&t);
                 self.move_cur((0, steps));
                 if steps > 0 { self.reset_timer("move_y", Some("game")); }
             }
         }
+        if start_run { self.set_state(RunState::Playing) }
     }
 
     // rotates the current Tetromino
@@ -219,6 +250,10 @@ impl RustyTetris {
 
     // declare the intent of moving y by 'dir' in the next move_y call
     pub fn intent_y (&mut self, dir: i8) {
+        match self.run_state {
+            RunState::Start => self.set_state(RunState::Playing),
+            _=> {}
+        }
         self.move_intent.1 = dir;
         let speed = self.move_y_cooldown;
         match self.get_routine("move_y", "game") {

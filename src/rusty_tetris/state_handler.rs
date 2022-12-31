@@ -16,8 +16,11 @@ pub enum GameEvent {
 
 impl GameEvent {
 
+    pub fn main_menu() -> Self {
+        GameEvent::State(GameState::MainMenu(super::MainMenu::new()))
+    }
     pub fn new_game() -> Self {
-        GameEvent::State(GameState::Game(Some(super::RustyTetris::new())))
+        GameEvent::State(GameState::Game(Some(super::RustyTetris::singleplayer())))
     }
     pub fn new_game_versus() -> Self {
         GameEvent::State(GameState::Versus(Some(super::RustyTetris::versus(1)), Some(super::RustyTetris::versus(2))))
@@ -47,9 +50,13 @@ impl GameState {
             Self::MainMenu(mm) => mm.update(api),
             Self::Game(rt) => match rt { Some(game) => game.update(api), None => (None, None)},
             Self::Versus(rt0, rt1) => {
-                let _ = match rt0 { Some(game0) => {game0.update(api); }, None => {}};
-                let _ = match rt1 { Some(game1) => {game1.update(api); }, None => {}};
-                (None, None)
+                match (
+                    match rt0 { Some(game0) => game0.update(api).0, None => None},
+                    match rt1 { Some(game1) => game1.update(api).0, None => None}
+                ) {
+                    (Some(r1), Some(_)) => (Some(r1), None),
+                    _=> (None, None)
+                }
             }
             Self::Scores => (None, None),
         }

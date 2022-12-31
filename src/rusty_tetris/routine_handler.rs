@@ -72,7 +72,7 @@ impl RoutineHandler for RustyTetris {
     // registers the following routines
     fn initialize_routines (&mut self) {
         self.routines = vec![
-            Routine::new("move_x", "game", None),
+            Routine::new("move_x", "priority", None),
             Routine::new("move_y", "game", None),
         ];
     }

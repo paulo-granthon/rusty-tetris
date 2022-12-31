@@ -32,20 +32,11 @@ impl RenderEngine for super::RustyTetris {
 
     fn rt_render (&mut self, con: &mut Console) {
 
-        let paused = self.paused;
+        let paused = match self.run_state { crate::rusty_tetris::RunState::Paused => true, _=> false };
 
         let side = match self.player { Some(p) => ((p as i32 - 1) * 2) - 1, _=> 0 };
 
-        // println!("{}", side);
-
         let player_x_offset = (R_PLAYFIELD_SIZE_X as i32 / 2) * side;
-        // let p = match self.player { Some(p) => p, _=> 666 };
-        // println!("{}: {} | ({}/2) * {}", p, player_x_offset, R_PLAYFIELD_SIZE_X, ((p - 1) as i32 * 2) - 1);
-        // println!("pf_con blit for player {}: {}", self.player.unwrap(), R_PLAYFIELD_X + player_x_offset);
-        // if self.player == Some(1) { return }
-
-
-        // self.player = Some(1);
 
         let block_scale = BLOCK_SCALE as i32;
         let _half_pf_width = PLAYFIELD_WIDTH as i32 / 2;
