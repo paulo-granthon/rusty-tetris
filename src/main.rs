@@ -1,15 +1,15 @@
-mod rusty_tetris; use rusty_tetris::*;
+mod rt; use rt::*;
 extern crate doryen_rs; use doryen_rs::{App, AppOptions};
 
 
 // Debug constants
-const DEBUG_MOVEMENT: bool = false;
-const DEBUG_RENDER: bool = false;
+pub const DEBUG_MOVEMENT: bool = false;
+pub const DEBUG_RENDER: bool = false;
 
 // doryen-rs constants
-const CONSOLE_WIDTH: u32 = 80;
-const CONSOLE_HEIGHT: u32 = 80;
-const MAX_FPS: usize = 60;
+pub const CONSOLE_WIDTH: u32 = 80;
+pub const CONSOLE_HEIGHT: u32 = 80;
+pub const MAX_FPS: usize = 60;
 
 fn main() {
     let mut app = App::new(AppOptions {

@@ -1,5 +1,5 @@
 use doryen_rs::{Engine, DoryenApi, UpdateEvent};
-use super::RustyEngine;
+use super::super::{RustyEngine, RTColor, clear};
 
 pub enum GameState {
     MainMenu(super::MainMenu),
@@ -62,7 +62,7 @@ impl GameState {
         }
     }
     fn render(&mut self, api: &mut dyn DoryenApi) {
-        api.con().clear(Some(super::RTColor::Black.value().1), Some(super::RTColor::Black.value().1), Some(' ' as u16));
+        clear(api.con());
         match self {
             Self::MainMenu(mm) => mm.render(api),
             Self::Game(rt) => match rt { Some(game) => game.render(api), None => {}},
@@ -98,7 +98,7 @@ impl Engine for StateHandler {
     fn init(&mut self, api: &mut dyn DoryenApi) {
 
         // register colors 
-        for color in super::RTColor::iter() {
+        for color in RTColor::iter() {
             api.con().register_color(color.value().0, color.value().1);
         }
 

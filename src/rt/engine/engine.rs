@@ -1,7 +1,7 @@
-use super::{RustyTetris, GameEvent};
-use super::routine_handler::*;
-use super::input_handler::*;
-use super::render::*;
+use crate::routine_handler::*;
+use crate::input_handler::*;
+use super::super::{RustyTetris, GameEvent, RunState, RenderEngine};
+// use super::render::*;
 
 extern crate doryen_rs; use doryen_rs::{DoryenApi, UpdateEvent};
 
@@ -35,14 +35,14 @@ impl RustyEngine for RustyTetris {
         match self.run_state {
 
             // Allow player to position and rotate piece freely without y movement until player presses up/down or skip
-            super::RunState::Start => {
+            RunState::Start => {
                 self.handle_input(input, "priority");
                 self.handle_input(input, "game");
                 self.handle_routines("priority");
             },
 
             // also handle inputs but also calls routines to move y
-            super::RunState::Playing => {
+            RunState::Playing => {
                 self.handle_input(input, "priority");
                 self.handle_input(input, "game");
                 self.handle_routines("priority");
@@ -50,13 +50,13 @@ impl RustyEngine for RustyTetris {
             },
 
             // handles inputs specific to the state and maybe return GameEvent
-            super::RunState::Paused => {
+            RunState::Paused => {
                 self.handle_input(input, "priority");
                 // paused should open a menu with the option to quit the run, that would return GameEvent
             },
 
             // handle input and return GameEvent on input
-            super::RunState::Over => {
+            RunState::Over => {
                 // return GameEvent to return to MainMenu on keypress
                 // self.reset()
                 return (self.handle_input(input, "over"), None);

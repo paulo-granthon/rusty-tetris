@@ -6,10 +6,7 @@ use crate::DEBUG_MOVEMENT;
 
 const DEFAULT_MOVE_Y_COOLDOWN: u32 = 240;
 
-use super::HasBag;
-use super::InputHandler;
-use super::routine_handler::RoutineHandler;
-// use super::HasBag;
+use super::super::{HasBag, InputHandler, RoutineHandler};
 
 // defines the values that the move_intent resets to
 pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
@@ -44,8 +41,8 @@ pub struct RustyTetris {
     pub score: i32,
     pub run_state: RunState,
     pub mouse_pos: (f32, f32),
-    pub inputmap: Vec::<super::KeyMap>,
-    pub routines: Vec::<super::Routine>,
+    pub inputmap: Vec::<crate::KeyMap>,
+    pub routines: Vec::<crate::Routine>,
     pub player: Option<usize>,
 
 }
@@ -427,4 +424,23 @@ impl RustyTetris {
 
     }
 
+}
+
+impl HasBag for RustyTetris {
+    fn bag_next(&mut self) -> Tetromino {
+        match &mut self.bag_queue {
+            Some(bag) => bag.next(),
+            None => {
+                self.bag_queue = Some(Bag::new());
+                self.bag_next()
+            }
+        }
+    }
+
+    fn bag_peek_next(&self) -> Option<TetrominoID> {
+        match &self.bag_queue {
+            Some(bag) => bag.peek(),
+            None => None
+        }
+    }
 }

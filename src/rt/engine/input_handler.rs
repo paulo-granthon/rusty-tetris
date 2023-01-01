@@ -1,7 +1,7 @@
 
 use doryen_rs::InputApi;
 
-use super::{RustyTetris, GameEvent};
+use super::super::{RustyTetris, GameEvent};
 
 // Struct that maps a key to a cooldown and a category to handle activation of inputs 
 pub struct KeyMap {

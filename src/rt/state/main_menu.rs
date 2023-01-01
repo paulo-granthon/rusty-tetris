@@ -1,6 +1,6 @@
 use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
 
-use super::{InputHandler, render_button, RTColor, GameEvent, render_logo};
+use super::super::{InputHandler, render_button, RTColor, GameEvent, render_logo, RustyEngine};
 
 const ACTIONS: &'static [(&'static str, RTColor); 5] = &[
     ("Play",        RTColor::Cyan),
@@ -12,7 +12,7 @@ const ACTIONS: &'static [(&'static str, RTColor); 5] = &[
 
 pub struct MainMenu {
     pub cursor_pos: usize,
-    pub inputmap: Vec::<super::KeyMap>,
+    pub inputmap: Vec::<crate::KeyMap>,
 }
 
 impl MainMenu {
@@ -42,7 +42,7 @@ impl MainMenu {
     }
 }
 
-impl super::RustyEngine for MainMenu {
+impl RustyEngine for MainMenu {
     fn init(&mut self) {
         self.register_inputs()
     }
@@ -75,7 +75,7 @@ impl super::RustyEngine for MainMenu {
             render_button(
                 con,
                 half_con_width,
-                half_con_height - (menu_height / 2) + (i as i32 * super::gui::BUTTON_HEIGHT as i32),
+                half_con_height - (menu_height / 2) + (i as i32 * crate::render::gui::BUTTON_HEIGHT as i32),
                 12,
                 ACTIONS[i].0,
                 if i == self.cursor_pos {black_colr}       else {text_color},
@@ -88,12 +88,12 @@ impl super::RustyEngine for MainMenu {
     }
 }
 
-impl super::InputHandler for MainMenu {
+impl InputHandler for MainMenu {
     fn register_inputs (&mut self) {
         self.inputmap = vec![
-            super::KeyMap::new("Enter",         "", None ),
-            super::KeyMap::new("ArrowUp",       "", Some(4) ),
-            super::KeyMap::new("ArrowDown",     "", Some(4) ),
+            crate::KeyMap::new("Enter",         "", None ),
+            crate::KeyMap::new("ArrowUp",       "", Some(4) ),
+            crate::KeyMap::new("ArrowDown",     "", Some(4) ),
         ];
     }
 

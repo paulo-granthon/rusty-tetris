@@ -1,5 +1,5 @@
 
-use super::rusty_tetris::RustyTetris;
+use super::super::RustyTetris;
 
 pub struct Routine {
     key: String,

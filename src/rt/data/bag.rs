@@ -1,7 +1,6 @@
 
-use super::database::{COUNT, random_enum, TetrominoID};
-use super::tetromino::Tetromino;
-use super::RustyTetris;
+use crate::database::{COUNT, random_enum, TetrominoID};
+use crate::Tetromino;
 
 pub struct Bag {
     sequence :[TetrominoID; COUNT],
@@ -57,23 +56,4 @@ fn contains(sequence: &Vec<TetrominoID>, tid: &TetrominoID) -> bool {
 pub trait HasBag {
     fn bag_next(&mut self) -> Tetromino;
     fn bag_peek_next(&self) -> Option<TetrominoID>;
-}
-
-impl HasBag for RustyTetris {
-    fn bag_next(&mut self) -> Tetromino {
-        match &mut self.bag_queue {
-            Some(bag) => bag.next(),
-            None => {
-                self.bag_queue = Some(Bag::new());
-                self.bag_next()
-            }
-        }
-    }
-
-    fn bag_peek_next(&self) -> Option<TetrominoID> {
-        match &self.bag_queue {
-            Some(bag) => bag.peek(),
-            None => None
-        }
-    }
 }

@@ -1,4 +1,6 @@
+use super::super::Alpha;
 use doryen_rs::Console;
+
 
 pub fn render_logo (con: &mut Console, x: i32, y: i32) {
 
@@ -80,7 +82,7 @@ pub fn render_logo (con: &mut Console, x: i32, y: i32) {
             con.ascii(1 + x + lx as i32 - (logo[ly].len() as i32 / 2), y + ly as i32, logo[ly][lx]);
             let color = decode_hex(colors[color_index]);
             con.fore(1 + x + lx as i32 - (logo[ly].len() as i32 / 2), y + ly as i32, color);
-            con.back(1 + x + lx as i32 - (logo[ly].len() as i32 / 2), y + ly as i32, super::Alpha::dim(&color, 4));
+            con.back(1 + x + lx as i32 - (logo[ly].len() as i32 / 2), y + ly as i32, Alpha::dim(&color, 4));
             color_index += 1
         }
     }
