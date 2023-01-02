@@ -146,12 +146,20 @@ impl RustyTetris {
         if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 {
             // use super::super::super::{write_binary, load_binary};
             // write_binary("scores/run", self.score.to_be_bytes());
-            crate::rt::serialization::score_tracker::save_score(1, self.score, 2);
-            let scores = crate::rt::serialization::score_tracker::load_scores(None, None).unwrap();
-            println!("scores: {:?}", scores);
-            for score in scores {
-                println!("player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
+
+            use crate::rt::serialization::score_tracker::*;
+            save_score(1, 2, self.score);
+            update_best(1, 2, self.score);
+            let scores = (load_history(None, None).unwrap(), load_best(None, None).unwrap());
+            println!("history:\t{:?}", scores.0);
+            println!("best:\t{:?}", scores.1);
+            for score in scores.0 {
+                println!("history: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
             }
+            for score in scores.1 {
+                println!("best: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
+            }
+
             // match load_binary("data/scores/run") {
             //     Ok(stream) => {
             //         println!("Scores:");

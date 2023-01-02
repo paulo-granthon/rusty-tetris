@@ -12,15 +12,19 @@ pub const CONSOLE_HEIGHT: u32 = 80;
 pub const MAX_FPS: usize = 60;
 
 fn main() {
+    let scores = (load_history(None, None).unwrap(), load_best(None, None).unwrap());
 
-    let scores = crate::rt::serialization::score_tracker::load_scores(None, None).unwrap();
-    println!("scores: {:?}", scores);
-    for score in scores {
-        println!("player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
+    println!("history:\t{:?}", scores.0);
+    println!("best:\t{:?}", scores.1);
+    for score in scores.0 {
+        println!("history: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
+    }
+    for score in scores.1 {
+        println!("best: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
     }
 
-    return;
-    
+    // return;
+
     // let number: u8 = 15;
     // let other: u8 = 15;
 
