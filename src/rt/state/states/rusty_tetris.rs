@@ -6,7 +6,7 @@ use crate::DEBUG_MOVEMENT;
 
 const DEFAULT_MOVE_Y_COOLDOWN: u32 = 240;
 
-use super::super::{HasBag, InputHandler, RoutineHandler};
+use super::super::super::{HasBag, InputHandler, RoutineHandler};
 
 // defines the values that the move_intent resets to
 pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
@@ -144,7 +144,29 @@ impl RustyTetris {
         self.next_con = Some(Console::new(6 * BLOCK_SCALE as u32, 8 * BLOCK_SCALE as u32));
 
         if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 {
-            self.set_state(RunState::Over) 
+            // use super::super::super::{write_binary, load_binary};
+            // write_binary("scores/run", self.score.to_be_bytes());
+            crate::rt::serialization::score_tracker::save_score(1, self.score, 2);
+            let scores = crate::rt::serialization::score_tracker::load_scores(None, None).unwrap();
+            println!("scores: {:?}", scores);
+            for score in scores {
+                println!("player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
+            }
+            // match load_binary("data/scores/run") {
+            //     Ok(stream) => {
+            //         println!("Scores:");
+            //         for i in 4..stream.len() / 4 {
+            //             let mut bytes = [0; 4];
+            //             for j in 0..4 {
+            //                 bytes[j] = stream[(i * 4) + j];
+            //             }
+            //             let score = i32::from_be_bytes(bytes);
+            //             println!("[{}] {}", i, score);
+            //         }
+            //     },
+            //     _=> {}
+            // }
+            self.set_state(RunState::Over)
         };
     }
 

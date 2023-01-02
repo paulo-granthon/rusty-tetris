@@ -1,6 +1,6 @@
 use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
 
-use super::super::{InputHandler, render_button, RTColor, GameEvent, render_logo, RustyEngine};
+use super::super::super::{InputHandler, render_button, RTColor, GameEvent, render_logo, RustyEngine};
 
 const ACTIONS: &'static [(&'static str, RTColor); 5] = &[
     ("Play",        RTColor::Cyan),
@@ -33,11 +33,11 @@ impl MainMenu {
 
             "Play"      => return Some(GameEvent::new_game()),
             "Versus"    => return Some(GameEvent::new_game_versus()),
-            "Scores"    => return None,
-            "Settings"  => return None,
+            "Scores"    => return Some(GameEvent::scores()),
+            // "Settings"  => return Some(GameEvent::new_scores()),
             "Exit"      => return Some(GameEvent::Exit),
 
-            _=> { println!("main_menu -- Error: unmapped action at cursor_pos '{}' ", self.cursor_pos); None }
+            _=> { println!("main_menu.action() -- unmapped action at cursor_pos '{}' ", self.cursor_pos); None }
         }
     }
 }

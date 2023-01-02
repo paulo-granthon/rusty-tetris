@@ -1,12 +1,18 @@
 use doryen_rs::{Engine, DoryenApi, UpdateEvent};
-use super::super::{RustyEngine, RTColor, clear};
+use super::super::{RustyEngine, RTColor, clear, RustyTetris, MainMenu, Scores, Settings};
+
+pub enum GameMode {
+    SinglePlayer,
+    Versus,
+}
 
 pub enum GameState {
-    MainMenu(super::MainMenu),
-    Game(Option<super::RustyTetris>),
+    MainMenu(MainMenu),
+    Game(RustyTetris),
     // SetupVersus
-    Versus(Option<super::RustyTetris>, Option<super::RustyTetris>),
-    Scores,
+    Versus(RustyTetris, RustyTetris),
+    Scores(Scores),
+    Settings(Settings),
 }
 
 pub enum GameEvent {
@@ -17,13 +23,20 @@ pub enum GameEvent {
 impl GameEvent {
 
     pub fn main_menu() -> Self {
-        GameEvent::State(GameState::MainMenu(super::MainMenu::new()))
+        GameEvent::State(GameState::MainMenu(MainMenu::new()))
     }
     pub fn new_game() -> Self {
-        GameEvent::State(GameState::Game(Some(super::RustyTetris::singleplayer())))
+        GameEvent::State(GameState::Game(RustyTetris::singleplayer()))
     }
     pub fn new_game_versus() -> Self {
-        GameEvent::State(GameState::Versus(Some(super::RustyTetris::versus(1)), Some(super::RustyTetris::versus(2))))
+        GameEvent::State(GameState::Versus(RustyTetris::versus(1), RustyTetris::versus(2)))
+    }
+    pub fn scores() -> Self {
+        GameEvent::State(GameState::Scores(Scores::new()))
+    }
+    pub fn settings() -> Self {
+        todo!();
+        // GameEvent::State(GameState::Versus(RustyTetris::versus(1), RustyTetris::versus(2)))
     }
 
 }
@@ -37,40 +50,37 @@ impl GameState {
     fn init(&mut self) {
         match self {
             Self::MainMenu(mm) => mm.init(),
-            Self::Game(rt) => match rt { Some(game) => game.init(), None => {}},
-            Self::Versus(rt0, rt1) => {
-                match rt0 { Some(game) => game.init(), None => {}};
-                match rt1 { Some(game) => game.init(), None => {}};
-            }
-            Self::Scores => {},
+            Self::Game(game) => game.init(),
+            Self::Versus(game0, game1) => {
+                game0.init();
+                game1.init();
+            },
+            Self::Scores(scores) => {},
+            Self::Settings(settings) => {},
         }
     }
     fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
         match self {
             Self::MainMenu(mm) => mm.update(api),
-            Self::Game(rt) => match rt { Some(game) => game.update(api), None => (None, None)},
-            Self::Versus(rt0, rt1) => {
-                match (
-                    match rt0 { Some(game0) => game0.update(api).0, None => None},
-                    match rt1 { Some(game1) => game1.update(api).0, None => None}
-                ) {
+            Self::Game(game) => game.update(api),
+            Self::Versus(game0, game1) => {
+                match ( game0.update(api).0, game1.update(api).0 ) {
                     (Some(r1), Some(_)) => (Some(r1), None),
                     _=> (None, None)
                 }
             }
-            Self::Scores => (None, None),
+            Self::Scores(scores) => (None, None),
+            Self::Settings(settings) => (None, None),
         }
     }
     fn render(&mut self, api: &mut dyn DoryenApi) {
         clear(api.con());
         match self {
             Self::MainMenu(mm) => mm.render(api),
-            Self::Game(rt) => match rt { Some(game) => game.render(api), None => {}},
-            Self::Versus(rt0, rt1) => {
-                match rt0 { Some(game0) => {game0.render(api);}, None => {}};
-                match rt1 { Some(game1) => {game1.render(api);}, None => {}};
-            }
-            Self::Scores => {},
+            Self::Game(game) => game.render(api),
+            Self::Versus(game0, game1) => { game0.render(api); game1.render(api); },
+            Self::Scores(scores) => {},
+            Self::Settings(settings) => {},
         }
     }
 }
@@ -103,7 +113,7 @@ impl Engine for StateHandler {
         }
 
         self.state.init()
-        // self.set_state(GameState::Game(Some(super::RustyTetris::new())))
+        // self.set_state(GameState::Game(RustyTetris::new()))
     }
 
     fn update(&mut self, api: &mut dyn DoryenApi) -> Option<UpdateEvent> {
