@@ -93,7 +93,7 @@ impl GameState {
     pub fn singleplayer () -> Self { GameState::Game(GameMode::singleplayer()) }
     pub fn versus       () -> Self { GameState::Game(GameMode::versus()) }
     pub fn scores       () -> Self { GameState::Scores(Scores::new()) }
-    // pub fn settings     () -> Self { GameState::Settings(Settings::new()) }
+    pub fn settings     () -> Self { GameState::Settings(Settings::new()) }
 }
 
 // defines events to be returned by the GameStates to the StateHandler 
@@ -109,7 +109,7 @@ impl GameEvent {
     pub fn new_game         () -> Self { GameEvent::State(GameState::singleplayer()) }
     pub fn new_game_versus  () -> Self { GameEvent::State(GameState::versus()) }
     pub fn scores           () -> Self { GameEvent::State(GameState::scores()) }
-    // pub fn settings         () -> Self { GameEvent::State(GameState::settings()) }
+    pub fn settings         () -> Self { GameEvent::State(GameState::settings()) }
 }
 
 // redirect methods for GameState's state
