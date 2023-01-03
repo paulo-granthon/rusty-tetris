@@ -18,7 +18,7 @@ impl RenderEngine for RustyTetris {
 
         let paused = match self.run_state { crate::rusty_tetris::RunState::Paused => true, _=> false };
 
-        let side = match self.player { Some(p) => ((p as i32 - 1) * 2) - 1, _=> 0 };
+        let side =  if self.player == 0 {0} else { ((self.player as i32 - 1) * 2) - 1 };
 
         let player_x_offset = ((R_PLAYFIELD_SIZE_X as i32 / 2) + 1) * side;
 

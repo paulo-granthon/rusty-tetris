@@ -80,31 +80,30 @@ impl InputHandler for RustyTetris {
 
     // register the game inputs 
     fn register_inputs (&mut self) {
-        let player = match self.player { Some(p) => p, None=> 0 };
-        // let player = 1;
-        println!("inputmap init for player {}: ", player);
 
-        println!("CONTROLLER[0][player]: {}", CONTROLLER[0][player]);
-        println!("CONTROLLER[1][player]: {}", CONTROLLER[1][player]);
-        println!("CONTROLLER[2][player]: {}", CONTROLLER[2][player]);
-        println!("CONTROLLER[3][player]: {}", CONTROLLER[3][player]);
-        println!("CONTROLLER[4][player]: {}", CONTROLLER[4][player]);
-        println!("CONTROLLER[5][player]: {}", CONTROLLER[5][player]);
-        println!("CONTROLLER[6][player]: {}", CONTROLLER[6][player]);
+        println!("inputmap init for player {}: ", self.player);
+
+        println!("CONTROLLER[0][player]: {}", CONTROLLER[0][self.player]);
+        println!("CONTROLLER[1][player]: {}", CONTROLLER[1][self.player]);
+        println!("CONTROLLER[2][player]: {}", CONTROLLER[2][self.player]);
+        println!("CONTROLLER[3][player]: {}", CONTROLLER[3][self.player]);
+        println!("CONTROLLER[4][player]: {}", CONTROLLER[4][self.player]);
+        println!("CONTROLLER[5][player]: {}", CONTROLLER[5][self.player]);
+        println!("CONTROLLER[6][player]: {}", CONTROLLER[6][self.player]);
 
         self.inputmap = vec![
 
             // KeyMap::new("Backspace",                "priority", None ),
             KeyMap::new("Enter",                    "priority", None ),
             
-            KeyMap::new(CONTROLLER[0][player],     "game", Some(0) ),
-            KeyMap::new(CONTROLLER[1][player],     "game", Some(0) ),
-            KeyMap::new(CONTROLLER[2][player],     "game", Some(6) ),
-            KeyMap::new(CONTROLLER[3][player],     "game", Some(6) ),
+            KeyMap::new(CONTROLLER[0][self.player],     "game", Some(0) ),
+            KeyMap::new(CONTROLLER[1][self.player],     "game", Some(0) ),
+            KeyMap::new(CONTROLLER[2][self.player],     "game", Some(6) ),
+            KeyMap::new(CONTROLLER[3][self.player],     "game", Some(6) ),
             
-            KeyMap::new(CONTROLLER[4][player],     "game", Some(8) ),
-            KeyMap::new(CONTROLLER[5][player],     "game", Some(8) ),
-            KeyMap::new(CONTROLLER[6][player],     "game", None ),
+            KeyMap::new(CONTROLLER[4][self.player],     "game", Some(8) ),
+            KeyMap::new(CONTROLLER[5][self.player],     "game", Some(8) ),
+            KeyMap::new(CONTROLLER[6][self.player],     "game", None ),
 
             KeyMap::new("Enter",                    "over", None ),
 
@@ -124,26 +123,24 @@ impl InputHandler for RustyTetris {
             if self.inputmap[index].trigger(input).to_owned() { //match self.inputmap[index].key_text.as_str() {
 
                 let key = self.inputmap[index].key_text.as_str();
-                let player = match self.player { Some(p) => p, None=> 0 };
-                // let player = 1;
 
                 if key == "" {}
 
                 // priority (checked before paused)
                 else if key == "Backspace"                { self.reset() }
                 else if key == "Enter" { 
-                    if self.inputmap[index].category == "over".to_owned() { return Some(GameEvent::main_menu()); }
+                    if self.inputmap[index].category == "over".to_owned() { return Some(GameEvent::GameOver); }
                     else { self.pause(); }
                 }
 
                 // default game inputs (checked if not paused)
-                else if key == CONTROLLER[0][player] { self.intent_y(2) }
-                else if key == CONTROLLER[1][player] { self.intent_y(16) }
-                else if key == CONTROLLER[2][player] { self.intent_x(-1) }
-                else if key == CONTROLLER[3][player] { self.intent_x(1) }
-                else if key == CONTROLLER[4][player] { self.rotate(true) }
-                else if key == CONTROLLER[5][player] { self.rotate(false) }
-                else if key == CONTROLLER[6][player] { self.skip() }
+                else if key == CONTROLLER[0][self.player] { self.intent_y(2) }
+                else if key == CONTROLLER[1][self.player] { self.intent_y(16) }
+                else if key == CONTROLLER[2][self.player] { self.intent_x(-1) }
+                else if key == CONTROLLER[3][self.player] { self.intent_x(1) }
+                else if key == CONTROLLER[4][self.player] { self.rotate(true) }
+                else if key == CONTROLLER[5][self.player] { self.rotate(false) }
+                else if key == CONTROLLER[6][self.player] { self.skip() }
 
                 // no key ? probably a overlook
                 /*_=>*/ else { println!("{}.handle_input: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.inputmap[index].key_text)}

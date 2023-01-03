@@ -43,7 +43,7 @@ pub struct RustyTetris {
     pub mouse_pos: (f32, f32),
     pub inputmap: Vec::<crate::KeyMap>,
     pub routines: Vec::<crate::Routine>,
-    pub player: Option<usize>,
+    pub player: usize,
 
 }
 
@@ -62,17 +62,17 @@ impl RustyTetris {
 
     // create a new instance
     pub fn singleplayer () -> Self {
-        Self::new(None)
+        Self::new(0)
     }
 
     // create a new instance for Some player
     pub fn versus (player: usize) -> Self {
         println!("new rusty tetris instance for player {}", player);
-        Self::new(Some(player))
+        Self::new(player)
     }
     
     // create a new instance with defined player
-    pub fn new (player: Option<usize>) -> Self {
+    pub fn new (player: usize) -> Self {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
@@ -147,18 +147,19 @@ impl RustyTetris {
             // use super::super::super::{write_binary, load_binary};
             // write_binary("scores/run", self.score.to_be_bytes());
 
-            use crate::rt::serialization::score_tracker::*;
-            save_score(1, 2, self.score);
-            update_best(1, 2, self.score);
-            let scores = (load_history(None, None).unwrap(), load_best(None, None).unwrap());
-            println!("history:\t{:?}", scores.0);
-            println!("best:\t{:?}", scores.1);
-            for score in scores.0 {
-                println!("history: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
-            }
-            for score in scores.1 {
-                println!("best: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
-            }
+            // use crate::rt::serialization::score_tracker::*;
+            // save_score(1, 2, self.score);
+            // update_best(1, 2, self.score);
+            // track_score(1, 0, self.score);
+            // let scores = (load_history(None, None).unwrap(), load_best(None, None).unwrap());
+            // println!("history:\t{:?}", scores.0);
+            // println!("best:\t{:?}", scores.1);
+            // for score in scores.0 {
+            //     println!("history: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
+            // }
+            // for score in scores.1 {
+            //     println!("best: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
+            // }
 
             // match load_binary("data/scores/run") {
             //     Ok(stream) => {

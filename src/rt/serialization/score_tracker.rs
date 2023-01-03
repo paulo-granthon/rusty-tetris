@@ -5,7 +5,7 @@ const PATH_HISTORY: &str = "data/scores/history";
 const PATH_BEST: &str = "data/scores/best";
 
 // maximum best scores list length
-const MAX_BEST_LENGTH: usize = 4;
+const MAX_BEST_LENGTH: usize = 100;
 
 // formats the given data to binary
 fn to_bytes (player: u8, game_mode: u8, score: i32) -> [u8; 4] {
@@ -24,11 +24,11 @@ fn to_bytes (player: u8, game_mode: u8, score: i32) -> [u8; 4] {
 pub fn track_score (player: u8, game_mode: u8, score: i32) {
 
     match save_score(player, game_mode, score) {
-        Err(e) => println!("track_score: [{}, {}, {}] -- Erro: {}", player, game_mode, score, e),
+        Err(e) => println!("track_score: save_score({}, {}, {}) -- Erro: {}", player, game_mode, score, e),
         _=> {}
     }
     match update_best(player, game_mode, score) {
-        Err(e) => println!("track_score: [{}, {}, {}] -- Erro: {}", player, game_mode, score, e),
+        Err(e) => println!("track_score: update_best({}, {}, {}) -- Erro: {}", player, game_mode, score, e),
         _=> {}
     }
 }
