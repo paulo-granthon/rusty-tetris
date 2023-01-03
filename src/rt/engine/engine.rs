@@ -1,6 +1,6 @@
 use crate::routine_handler::*;
 use crate::input_handler::*;
-use super::super::{RustyTetris, GameEvent, RunState, RenderEngine};
+use super::super::{Game, GameEvent, RunState, RenderEngine};
 // use super::render::*;
 
 extern crate doryen_rs; use doryen_rs::{DoryenApi, UpdateEvent};
@@ -12,7 +12,7 @@ pub trait RustyEngine {
 }
 
 // Doryen engine implementation for RustyTetris
-impl RustyEngine for RustyTetris {
+impl RustyEngine for Game {
 
     // initialize the engine
     fn init(&mut self) {

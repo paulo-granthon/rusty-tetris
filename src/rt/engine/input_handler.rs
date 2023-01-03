@@ -1,7 +1,7 @@
 
 use doryen_rs::InputApi;
 
-use super::super::{RustyTetris, GameEvent};
+use super::super::{Game, GameEvent};
 
 // Struct that maps a key to a cooldown and a category to handle activation of inputs 
 pub struct KeyMap {
@@ -76,7 +76,7 @@ pub trait InputHandler {
 }
 
 // implement the InputHandler trait on RustyTetris
-impl InputHandler for RustyTetris {
+impl InputHandler for Game {
 
     // register the game inputs 
     fn register_inputs (&mut self) {

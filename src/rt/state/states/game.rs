@@ -28,7 +28,7 @@ pub enum RunState {
 }
 
 // Rusty Tetris engine definition
-pub struct RustyTetris {
+pub struct Game {
     pub playfield: [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize],
     pub playfield_con: Option<Console>,
     pub move_y_cooldown: u32,
@@ -48,7 +48,7 @@ pub struct RustyTetris {
 }
 
 // engine implementation
-impl RustyTetris {
+impl Game {
 
     // creates a blank playfield
     fn create_playfield() -> [[Option<RTColor>; PLAYFIELD_HEIGHT as usize]; PLAYFIELD_WIDTH as usize] {
@@ -457,7 +457,7 @@ impl RustyTetris {
 
 }
 
-impl HasBag for RustyTetris {
+impl HasBag for Game {
     fn bag_next(&mut self) -> Tetromino {
         match &mut self.bag_queue {
             Some(bag) => bag.next(),

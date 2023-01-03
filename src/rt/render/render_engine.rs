@@ -1,6 +1,6 @@
 use doryen_rs::Console;
 
-use super::super::{RustyTetris, render::*, RunState};
+use super::super::{Game, render::*, RunState};
 
 use crate::DEBUG_RENDER;
 
@@ -12,11 +12,11 @@ pub trait RenderEngine {
     fn rt_render (&mut self, con: &mut Console);
 }
 
-impl RenderEngine for RustyTetris {
+impl RenderEngine for Game {
 
     fn rt_render (&mut self, con: &mut Console) {
 
-        let paused = match self.run_state { crate::rusty_tetris::RunState::Paused => true, _=> false };
+        let paused = match self.run_state { crate::game::RunState::Paused => true, _=> false };
 
         let side =  if self.player == 0 {0} else { ((self.player as i32 - 1) * 2) - 1 };
 

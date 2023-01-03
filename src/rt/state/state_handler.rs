@@ -1,21 +1,27 @@
 use doryen_rs::{Engine, DoryenApi, UpdateEvent};
-use super::super::{RustyEngine, RTColor, clear, RustyTetris, MainMenu, Scores, Settings};
+use crate::states:: {Game, MainMenu, Scores, Settings};
+use super::super::{RustyEngine, RTColor, clear};
 
+// wrapper for Game 
 pub enum GameMode {
-    SinglePlayer(RustyTetris),
-    Versus(RustyTetris, RustyTetris),
+    SinglePlayer(Game),
+    Versus(Game, Game),
 }
 
+// logic implementation for GameMode
 impl GameMode {
 
+    // creates a GameMode instance for singleplayer
     pub fn singleplayer() -> Self {
-        GameMode::SinglePlayer(RustyTetris::singleplayer())
+        GameMode::SinglePlayer(Game::singleplayer())
     }
 
+    // creates a GameMode instance for versus mode with two Game instances
     pub fn versus() -> Self {
-        GameMode::Versus(RustyTetris::versus(1), RustyTetris::versus(2))
+        GameMode::Versus(Game::versus(1), Game::versus(2))
     }
     
+    // matches GameMode to a unique id for serialization
     pub fn id (&self) -> u8 {
         match self {
             GameMode::SinglePlayer(_) => 0,
@@ -23,10 +29,19 @@ impl GameMode {
         }
     }
 
+    // called when game ends to track scores
     pub fn game_over (&self) {
+
+        // import score_tracker for this function only
         use crate::rt::serialization::score_tracker::*;
+
+        // match GameMode
         match self {
+
+            // singleplayer: track the score of the Game on this GameMode
             GameMode::SinglePlayer(game) => track_score(game.player as u8, self.id(), game.score),
+
+            // versus: track the score of both instances of Game
             GameMode::Versus(game1, game2) => {
                 track_score(game1.player as u8, self.id(), game1.score);
                 track_score(game2.player as u8, self.id(), game2.score);
@@ -34,13 +49,15 @@ impl GameMode {
         }
     }
 
+    // redirects the init method to the Game of the GameMode
     pub fn init (&mut self) {
         match self {
             GameMode::SinglePlayer(game) => game.init(),
             GameMode::Versus(game1, game2) => { game1.init(); game2.init() },
         }
     }
-    
+
+    // redirects the update method to the Game of the GameMode
     pub fn update (&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
         match self {
             GameMode::SinglePlayer(game) => game.update(api),
@@ -51,6 +68,7 @@ impl GameMode {
         }
     }
 
+    // redirects the render method to the Game of the GameMode
     pub fn render (&mut self, api: &mut dyn DoryenApi) {
         match self {
             GameMode::SinglePlayer(game) => game.render(api),
@@ -59,6 +77,7 @@ impl GameMode {
     }
 }
 
+// wrapper for state
 pub enum GameState {
     MainMenu(MainMenu),
     Game(GameMode),
@@ -66,58 +85,35 @@ pub enum GameState {
     Settings(Settings),
 }
 
+// logic implementation for GameState
 impl GameState {
 
-    pub fn main_menu () -> Self { 
-        GameState::MainMenu(MainMenu::new())
-    }
-    pub fn singleplayer () -> Self { 
-        GameState::Game(GameMode::singleplayer())
-    }
-    pub fn versus () -> Self { 
-        GameState::Game(GameMode::versus())
-    }
-    pub fn scores () -> Self { 
-        GameState::Scores(Scores::new())
-    }
-    // pub fn settings () -> Self { 
-    //     GameState::Settings(Settings::new())
-    // }
+    // initialization
+    pub fn main_menu    () -> Self { GameState::MainMenu(MainMenu::new()) }
+    pub fn singleplayer () -> Self { GameState::Game(GameMode::singleplayer()) }
+    pub fn versus       () -> Self { GameState::Game(GameMode::versus()) }
+    pub fn scores       () -> Self { GameState::Scores(Scores::new()) }
+    // pub fn settings     () -> Self { GameState::Settings(Settings::new()) }
 }
 
+// defines events to be returned by the GameStates to the StateHandler 
 pub enum GameEvent {
     State(GameState),
     GameOver,
     Exit,
 }
 
+// GameEvent::State initialization methods
 impl GameEvent {
-
-    pub fn main_menu() -> Self {
-        GameEvent::State(GameState::main_menu())
-    }
-    pub fn new_game() -> Self {
-        GameEvent::State(GameState::singleplayer())
-    }
-    pub fn new_game_versus() -> Self {
-        GameEvent::State(GameState::versus())
-    }
-    pub fn scores() -> Self {
-        GameEvent::State(GameState::scores())
-    }
-    pub fn settings() -> Self {
-        todo!();
-        // GameEvent::State(GameState::settings())
-    }
-
+    pub fn main_menu        () -> Self { GameEvent::State(GameState::main_menu()) }
+    pub fn new_game         () -> Self { GameEvent::State(GameState::singleplayer()) }
+    pub fn new_game_versus  () -> Self { GameEvent::State(GameState::versus()) }
+    pub fn scores           () -> Self { GameEvent::State(GameState::scores()) }
+    // pub fn settings         () -> Self { GameEvent::State(GameState::settings()) }
 }
 
+// redirect methods for GameState's state
 impl GameState {
-    // pub fn iter() -> std::slice::Iter<'static, GameState> {
-    //     static STATES: [GameState; 3] = [GameState::MainMenu, GameState::Game(None), GameState::Scores];
-    //     STATES.iter()
-    // }
-
     fn init(&mut self) {
         match self {
             Self::MainMenu(mm) => mm.init(),

@@ -1,5 +1,5 @@
 
-use super::super::RustyTetris;
+use super::super::Game;
 
 pub struct Routine {
     key: String,
@@ -67,7 +67,7 @@ pub trait RoutineHandler {
 }
 
 // defines the RoutineHandler trait to state the following functions on a Struct that implements it
-impl RoutineHandler for RustyTetris {
+impl RoutineHandler for Game {
 
     // registers the following routines
     fn initialize_routines (&mut self) {
