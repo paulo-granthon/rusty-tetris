@@ -1,2 +1,5 @@
 /target
-.bin
+*.bin
+*.pdn
+# data/scores/best.bin
+# data/scores/history.bin

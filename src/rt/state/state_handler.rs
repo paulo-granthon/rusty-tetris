@@ -116,27 +116,27 @@ impl GameEvent {
 impl GameState {
     fn init(&mut self) {
         match self {
-            Self::MainMenu(mm) => mm.init(),
-            Self::Game(gm) => gm.init(),
-            Self::Scores(scores) => {},
-            Self::Settings(settings) => {},
+            Self::MainMenu(state) => state.init(),
+            Self::Game(state)     => state.init(),
+            Self::Scores(state)     => state.init(),
+            Self::Settings(state) => state.init(),
         }
     }
     fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
         match self {
-            Self::MainMenu(mm) => mm.update(api),
-            Self::Game(gm) => gm.update(api),
-            Self::Scores(scores) => (None, None),
-            Self::Settings(settings) => (None, None),
+            Self::MainMenu(state) => state.update(api),
+            Self::Game(state)     => state.update(api),
+            Self::Scores(state)     => state.update(api),
+            Self::Settings(state) => state.update(api),
         }
     }
     fn render(&mut self, api: &mut dyn DoryenApi) {
         clear(api.con());
         match self {
-            Self::MainMenu(mm) => mm.render(api),
-            Self::Game(gm) => gm.render(api),
-            Self::Scores(scores) => {},
-            Self::Settings(settings) => {},
+            Self::MainMenu(state) => state.render(api),
+            Self::Game(state)     => state.render(api),
+            Self::Scores(state)     => state.render(api),
+            Self::Settings(state) => state.render(api),
         }
     }
 }

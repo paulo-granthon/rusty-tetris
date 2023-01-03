@@ -1,36 +1,173 @@
-use super::super::super::RustyEngine;
+use crate::{InputHandler, GameEvent, RustyEngine};
+use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
+use crate::{Align, RTColor, render_rect, render_button};
 
-// defines the State "Scores"
+// for action distinction
+enum Action {
+    Tab(i8),
+    Scroll(i8),
+    Exit,
+    None,
+}
+
+// defines the state "Scores"
 pub struct Scores {
-    history: Vec<(u8, u8, i32)>,
-    best: Vec<(u8, u8, i32)>,
-    cursor_pos: usize,
+    scores: Vec<(Vec<(u8, u8, i32)>, Vec<(u8, u8, i32)>)>,
+    position: (usize, i32),
     inputmap: Vec::<crate::KeyMap>,
+    actions: [[Action; 3]; 3]
 }
 
 // implements initialization for the state
 impl Scores {
+
+    // initialize the state, loading the score data of all profiles
     pub fn new () -> Self {
         use crate::rt::serialization::score_tracker::*;
         Self {
-            history: load_history(None, None).unwrap(), 
-            best: load_best(None, None).unwrap(),
-            cursor_pos: 0, inputmap: vec![],
+            scores: vec![(
+                load_history(None, None).unwrap(),
+                load_best(None, None).unwrap()
+            )],
+            position: (0, 0),
+            inputmap: vec![],
+            actions: [
+                [Action::None,    Action::Scroll(-1), Action::None   ],
+                [Action::Tab(-1), Action::Exit,       Action::Tab( 1)],
+                [Action::None,    Action::Scroll( 1), Action::None   ],
+            ]
         }
     }
+
+    // idenfifies the action triggered by the input and call the corresponding functionallity
+    fn action (&mut self, x: usize, y: usize) -> Option<GameEvent> {
+        match self.actions[y][x] {
+            Action::Tab(dir)    => self.tab(dir),
+            Action::Scroll(dir) => self.scroll(dir as i32),
+            Action::Exit => Some(GameEvent::main_menu()),
+            Action::None => None,
+        }
+    }
+
+    // switched between players
+    fn tab (&mut self, dir: i8) -> Option<GameEvent> {
+        self.position.0 = ((self.position.0 as i8 + dir) + self.scores.len() as i8) as usize % self.scores.len();
+        None
+    }
+
+    // scrolls the contents of the list 
+    fn scroll (&mut self, dir: i32) -> Option<GameEvent> {
+        let len = (self.scores[self.position.0].0.len().max(self.scores[self.position.0].1.len()) as i32 - super::super::super::super::CONSOLE_HEIGHT as i32).max(1);
+        self.position.1 = ((self.position.1 + dir) + len ) % len;
+        None
+    }
+
+
 }
 
 // implements the doryen-rs engine for the state
 impl RustyEngine for Scores {
+
+    // engine initialization
     fn init(&mut self) {
-        todo!()
+        self.register_inputs()
     }
 
-    fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> (Option<super::super::GameEvent>, Option<doryen_rs::UpdateEvent>) {
-        todo!()
+    // engine update
+    fn update(&mut self, api: &mut dyn doryen_rs::DoryenApi) -> (Option<GameEvent>, Option<doryen_rs::UpdateEvent>) {
+        let input = api.input();
+        (self.handle_input(input, ""), None)
     }
 
     fn render(&mut self, api: &mut dyn doryen_rs::DoryenApi) {
-        todo!()
+        
+        // get the console
+        let con = api.con();
+
+        // calculate half sizes of console
+        // let half_con_height = CONSOLE_HEIGHT as i32 / 2;
+        // let half_con_width  = CONSOLE_WIDTH as i32  / 2;
+
+        // reference the following colors 
+        let white = RTColor::White;
+        let blue = RTColor::Blue;
+        let red = RTColor::Red;
+        let gray = RTColor::Grey.value().1;
+        let dark_gray = RTColor::DarkGrey.value().1;
+        let darker_gray = RTColor::DarkerGrey.value().1;
+        let black = Some(RTColor::Black.value().1);
+
+        
+        // render title
+        render_button(con, 0, 0, CONSOLE_WIDTH, "Scores", blue, Some(darker_gray), black, (Align::Start, Align::Start));
+
+        // renders the Esc button 
+        render_button(con, 0, 0, 7, "Esc", red, Some(darker_gray), black, (Align::Start, Align::Start));
+
+        // render scrollbar
+        render_rect(con, CONSOLE_WIDTH as i32, 5, 3, CONSOLE_HEIGHT - 5, Some(('|', darker_gray)), black, (Align::End, Align::Start));
+
+        render_button(con, 0,  5, 40, "#[cyan]Best Scores", RTColor::Grey, Some(darker_gray), black, (Align::Start, Align::Start));
+        render_button(con, 40, 5, 37, "#[magenta]History", RTColor::Grey, Some(darker_gray), black, (Align::Start, Align::Start));
+        render_rect  (con, 0,  5, 40, CONSOLE_HEIGHT - 5, None, Some(darker_gray), (Align::Start, Align::Start));
+        render_rect  (con, 40, 5, 37, CONSOLE_HEIGHT - 5, None, Some(darker_gray), (Align::Start, Align::Start));
+
+        // render best
+        for i in 0..self.scores[self.position.0].0.len() {
+            
+            // get the score record
+            let record = self.scores[self.position.0].0[i];
+
+            // render 
+            render_button(con, 1, 10 + i as i32, 38, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), black, Align::start2());
+        }
+
+        // render history
+        for i in 0..self.scores[self.position.0].0.len() {
+            
+            // get the score record
+            let record = self.scores[self.position.0].0[i];
+
+            // render 
+            render_button(con, 40, 10 + i as i32, 37, format!("Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", record.0, record.1, record.2).as_str(), white, Some(darker_gray), black, Align::start2());
+        }
+
+    }
+}
+
+impl InputHandler for Scores {
+
+    fn register_inputs (&mut self) {
+        self.inputmap = vec![
+            crate::KeyMap::new("Escape",        "", None ),
+            crate::KeyMap::new("ArrowUp",       "", Some(4) ),
+            crate::KeyMap::new("ArrowDown",     "", Some(4) ),
+            crate::KeyMap::new("ArrowLeft",     "", Some(4) ),
+            crate::KeyMap::new("ArrowRight",    "", Some(4) ),
+        ];
+    }
+
+    fn handle_input(&mut self, input: &mut dyn doryen_rs::InputApi, _: &str) -> Option<GameEvent> {
+        
+        // loop through all registered inputs
+        for index in 0..self.inputmap.len() {
+
+            // if trigger returns true, match the key to call the function
+            if self.inputmap[index].trigger(input).to_owned() { match self.inputmap[index].key_text.as_str() {
+
+                // before paused check game inputs
+                "Escape"        => return self.action(1, 1),
+                "ArrowUp"       => return self.action(1, 0),
+                "ArrowDown"     => return self.action(1, 2),
+                "ArrowLeft"     => return self.action(0, 1),
+                "ArrowRight"    => return self.action(2, 1),
+
+                // no key ? probably a overlook
+                _=> { println!("{}.handle_input: Key '{}' is registered but not mapped!", std::any::type_name::<Self>(), self.inputmap[index].key_text); return None }
+            }}
+        }
+
+        // no result
+        None
     }
 }

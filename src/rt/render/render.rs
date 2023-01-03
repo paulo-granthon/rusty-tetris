@@ -1,4 +1,5 @@
 extern crate doryen_rs; use doryen_rs::Console;
+use crate::Align;
 
 use crate::data::tetromino::Tetromino;
 pub use super::super::RTColor;
@@ -136,33 +137,6 @@ pub fn render_score (con: &mut Console, x: i32, y: i32, score: i32) {
         doryen_rs::TextAlign::Center,
         Some(RTColor::Black.value().1)
     );
-}
-
-#[allow(dead_code)]
-pub enum Align { 
-    Start,
-    Fraction(i32),
-    End,
-    Custom(i32)
-}
-
-impl Align {
-
-    // short for Fraction(2)
-    fn center () -> Self { Align::Fraction(2) }
-
-    // short for (Fraction(2), Fraction(2))
-    fn center2 () -> (Self, Self) { (Align::center(), Align::center()) } 
-
-    // returns the i32 value of the Align for the given range 
-    fn value (&self, size: i32) -> i32 {
-        match &self {
-            Align::Start => 0,
-            Align::Fraction(x) => if x.to_owned() == 0 {0} else {size / x},
-            Align::End => size,
-            Align::Custom(x) => x.to_owned(),
-        }
-    }
 }
 
 // renders a popup stating that the game is paused

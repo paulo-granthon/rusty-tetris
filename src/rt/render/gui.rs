@@ -1,5 +1,5 @@
-use super::super::Alpha;
 use doryen_rs::Console;
+use crate::{RTColor, Alpha, Align};
 
 
 pub fn render_logo (con: &mut Console, x: i32, y: i32) {
@@ -101,16 +101,36 @@ fn decode_hex(s: &str) -> (u8, u8, u8, u8) {
     
 }
 
+pub fn render_rect (con: &mut Console,
+    x: i32, y: i32, w: u32, h: u32,
+    fore: Option<(char, (u8, u8, u8, u8))>, back: Option<(u8, u8, u8, u8)>,
+    anchor: (Align, Align),
+) {
+    let (fore, fill) = match fore {
+        Some((c, col)) => (Some(col), Some(c as u16)),
+        None => (None, None),
+    };
+
+    con.rectangle(
+        x + anchor.0.value(w as i32),
+        y + anchor.1.value(h as i32),
+        w.max(2), h.max(2), 
+        fore, back, fill
+    );
+}
+
 pub const BUTTON_HEIGHT: u32 = 5; 
 
-pub fn render_button (
-    con: &mut Console,
+pub fn render_button (con: &mut Console,
     x: i32, y: i32, w: u32,
-    text: &str, color: (u8, u8, u8, u8),
-    fore: Option<(u8, u8, u8, u8)>, back: Option<(u8, u8, u8, u8)>
+    text: &str, color: RTColor,
+    fore: Option<(u8, u8, u8, u8)>, back: Option<(u8, u8, u8, u8)>,
+    anchor: (Align, Align),
 ) {
-    let width = w.max(text.len() as u32 + 4);
-    con.rectangle(x - (width as i32 / 2), y - (BUTTON_HEIGHT as i32 / 2), width, BUTTON_HEIGHT, fore, back, Some('+' as u16));
-    con.rectangle(x - (width as i32 / 2), y - (BUTTON_HEIGHT as i32 / 2), width, BUTTON_HEIGHT, Some(color), None, None);
-    con.print(x, y, text, doryen_rs::TextAlign::Center, Some(color), back);
+    let width = if w == 0 {text.len() as u32 + 4 } else {w};
+    let x_offs = anchor.0.value(width as i32);
+    let y_offs = anchor.1.value(BUTTON_HEIGHT as i32);
+    con.rectangle(x + x_offs, y + y_offs, width, BUTTON_HEIGHT, fore, back, Some('+' as u16));
+    con.rectangle(x + x_offs, y + y_offs, width, BUTTON_HEIGHT, Some(color.value().1), None, None);
+    con.print_color(x + x_offs + (width as i32 / 2), y + y_offs + (BUTTON_HEIGHT as i32 / 2), format!("#[{}]{}", color.value().0, text).as_str(), doryen_rs::TextAlign::Center, None);
 }

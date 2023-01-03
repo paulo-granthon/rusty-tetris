@@ -1,14 +1,44 @@
+use crate::{InputHandler, render_button, RTColor, GameEvent, render_logo, RustyEngine};
 use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
 
-use super::super::super::{InputHandler, render_button, RTColor, GameEvent, render_logo, RustyEngine};
+// for action distinction
+enum Action {
+    Play,
+    Versus,
+    Scores,
+    Settings,
+    Exit,
+}
+
+// logic implementation for each Action
+impl Action {
+    fn text (&self) -> &str {
+        match self {
+            Action::Play     => "Play",
+            Action::Versus   => "Versus",
+            Action::Scores   => "Scores",
+            Action::Settings => "Settings",
+            Action::Exit     => "Exit",        
+        }
+    }
+    fn color (&self) -> RTColor {
+        match self {
+            Action::Play     => RTColor::Cyan,
+            Action::Versus   => RTColor::Magenta,
+            Action::Scores   => RTColor::Green,
+            Action::Settings => RTColor::Blue,
+            Action::Exit     => RTColor::Red,        
+        }
+    }
+}
 
 // lists the possible idenfiable actions of the main_menu
-const ACTIONS: &'static [(&'static str, RTColor); 5] = &[
-    ("Play",        RTColor::Cyan),
-    ("Versus",      RTColor::Magenta),
-    ("Scores",      RTColor::Green),
-    ("Settings",    RTColor::Blue),
-    ("Exit",        RTColor::Red),
+const ACTIONS: [Action; 5] = [
+    Action::Play,
+    Action::Versus,
+    Action::Scores,
+    Action::Settings,
+    Action::Exit,
 ];
 
 // defines the state
@@ -37,17 +67,17 @@ impl MainMenu {
 
     // triggers the currently selected action
     fn action (&self) -> Option<GameEvent> {
-        match ACTIONS[self.cursor_pos].0 {
+        match ACTIONS[self.cursor_pos] {
             
             // returns Some GameEvent matching the action
-            "Play"      => return Some(GameEvent::new_game()),
-            "Versus"    => return Some(GameEvent::new_game_versus()),
-            "Scores"    => return Some(GameEvent::scores()),
-            "Settings"  => return Some(GameEvent::settings()),
-            "Exit"      => return Some(GameEvent::Exit),
+            Action::Play      => return Some(GameEvent::new_game()),
+            Action::Versus    => return Some(GameEvent::new_game_versus()),
+            Action::Scores    => return Some(GameEvent::scores()),
+            Action::Settings  => return Some(GameEvent::settings()),
+            Action::Exit      => return Some(GameEvent::Exit),
 
             // unmapped action
-            _=> { println!("main_menu.action() -- unmapped action at cursor_pos '{}' ", self.cursor_pos); None }
+            // _=> { println!("main_menu.action() -- unmapped action at cursor_pos '{}' ", self.cursor_pos); None }
         }
     }
 }
@@ -68,6 +98,7 @@ impl RustyEngine for MainMenu {
 
     // rendering
     fn render(&mut self, api: &mut dyn doryen_rs::DoryenApi) {
+        use crate::Align;
 
         // get the console
         let con = api.con();
@@ -91,7 +122,7 @@ impl RustyEngine for MainMenu {
         for i in 0..ACTIONS.len() {
 
             // reference the color of the action to define the render_button colors
-            let text_color = ACTIONS[i].1.value().1;
+            let text_color = ACTIONS[i].color().value().1;
 
             // render the button with the text
             render_button(
@@ -99,13 +130,15 @@ impl RustyEngine for MainMenu {
                 half_con_width,
                 half_con_height - (menu_height / 2) + (i as i32 * crate::render::gui::BUTTON_HEIGHT as i32),
                 12,
-                ACTIONS[i].0,
+                ACTIONS[i].text(),
 
                 // active:      black text,     white bg details,       custom bg
                 // inactive:    custom text,    grey bg details,        black bg
-                if i == self.cursor_pos {black_colr}       else {text_color},
+                if i == self.cursor_pos {RTColor::Black}   else {ACTIONS[i].color()},
                 if  i == self.cursor_pos {Some(white_colr)} else {Some(fore_color)},
                 if  i == self.cursor_pos {Some(text_color)} else {Some(black_colr)},
+
+                Align::center2()
             );
         }
 
@@ -125,7 +158,7 @@ impl InputHandler for MainMenu {
     }
 
     // handle per frame inputs
-    fn handle_input(&mut self, input: &mut dyn doryen_rs::InputApi, _category: &str) -> Option<GameEvent> {
+    fn handle_input(&mut self, input: &mut dyn doryen_rs::InputApi, _: &str) -> Option<GameEvent> {
 
         // loop through all registered inputs
         for index in 0..self.inputmap.len() {
