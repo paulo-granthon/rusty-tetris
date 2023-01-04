@@ -13,7 +13,7 @@ enum Action {
 // defines the state "Scores"
 pub struct Scores {
     scores: Vec<(Vec<(u8, u8, i32)>, Vec<(u8, u8, i32)>)>,
-    position: (usize, i32),
+    position: (usize, usize),
     inputmap: Vec::<crate::KeyMap>,
     actions: [[Action; 3]; 3]
 }
@@ -51,14 +51,18 @@ impl Scores {
 
     // switched between players
     fn tab (&mut self, dir: i8) -> Option<GameEvent> {
-        self.position.0 = ((self.position.0 as i8 + dir) + self.scores.len() as i8) as usize % self.scores.len();
+        let new = ((self.position.0 as i8 + dir) + self.scores.len() as i8) as usize % self.scores.len();
+        if new == self.position.0 {
+            self.position.0 = new;
+            self.position.1 = 0;
+        }
         None
     }
 
     // scrolls the contents of the list 
     fn scroll (&mut self, dir: i32) -> Option<GameEvent> {
-        let len = (self.scores[self.position.0].0.len().max(self.scores[self.position.0].1.len()) as i32 - super::super::super::super::CONSOLE_HEIGHT as i32).max(1);
-        self.position.1 = ((self.position.1 + dir) + len ) % len;
+        let len = (self.scores[self.position.0].0.len().max(self.scores[self.position.0].1.len()) as i32 - 14).max(1);
+        self.position.1 = (self.position.1 as i32 + dir).max(0).min(len) as usize;
         None
     }
 
@@ -70,6 +74,7 @@ impl RustyEngine for Scores {
 
     // engine initialization
     fn init(&mut self) {
+        println!("{:?}", self.scores[0].0.len());
         self.register_inputs()
     }
 
@@ -97,29 +102,24 @@ impl RustyEngine for Scores {
         let darker_gray = RTColor::DarkerGrey.value().1;
         let black = Some(RTColor::Black.value().1);
 
-        
-        // render title
-        render_button(con, 0, 0, CONSOLE_WIDTH, "Scores", blue, Some(darker_gray), black, (Align::Start, Align::Start));
-
-        // renders the Esc button 
-        render_button(con, 0, 0, 7, "Esc", red, Some(darker_gray), black, (Align::Start, Align::Start));
-
-        // render scrollbar
-        render_rect(con, CONSOLE_WIDTH as i32, 5, 3, CONSOLE_HEIGHT - 5, Some(('|', darker_gray)), black, (Align::End, Align::Start));
-
-        render_button(con, 0,  5, 40, "#[cyan]Best Scores", RTColor::Grey, Some(darker_gray), black, (Align::Start, Align::Start));
-        render_button(con, 40, 5, 37, "#[magenta]History", RTColor::Grey, Some(darker_gray), black, (Align::Start, Align::Start));
+        // render lists bg
         render_rect  (con, 0,  5, 40, CONSOLE_HEIGHT - 5, None, Some(darker_gray), (Align::Start, Align::Start));
         render_rect  (con, 40, 5, 37, CONSOLE_HEIGHT - 5, None, Some(darker_gray), (Align::Start, Align::Start));
 
+        // render scrollbar
+        render_rect(con, CONSOLE_WIDTH as i32, 5, 3, CONSOLE_HEIGHT - 5, Some(('|', darker_gray)), black, (Align::End, Align::Start));
+        render_rect(con, CONSOLE_WIDTH as i32, 5 + self.position.1 as i32, 3, 3, Some(('=', blue.value().1)), Some(white.value().1), (Align::End, Align::Start));
+
+        // println!("{} | {}", self.position.1, self.scores[self.position.0].1.len());
+
         // render best
-        for i in 0..self.scores[self.position.0].0.len() {
+        for i in 0..self.scores[self.position.0].1.len() {
             
             // get the score record
-            let record = self.scores[self.position.0].0[i];
+            let record = self.scores[self.position.0].1[i];
 
             // render 
-            render_button(con, 1, 10 + i as i32, 38, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), black, Align::start2());
+            render_button(con, 1, 10 + (i as i32 - self.position.1 as i32) * 5, 38, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), black, Align::start2());
         }
 
         // render history
@@ -129,8 +129,18 @@ impl RustyEngine for Scores {
             let record = self.scores[self.position.0].0[i];
 
             // render 
-            render_button(con, 40, 10 + i as i32, 37, format!("Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", record.0, record.1, record.2).as_str(), white, Some(darker_gray), black, Align::start2());
+            render_button(con, 40, 10 + (i as i32 - self.position.1 as i32) * 5, 37, format!("Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", record.0, record.1, record.2).as_str(), white, Some(darker_gray), black, Align::start2());
         }
+        
+        // render title
+        render_button(con, 0, 0, CONSOLE_WIDTH, "Scores", blue, Some(darker_gray), black, (Align::Start, Align::Start));
+
+        // renders the Esc button 
+        render_button(con, 0, 0, 7, "Esc", red, Some(darker_gray), black, (Align::Start, Align::Start));
+
+        // render labels
+        render_button(con, 0,  5, 40, "#[cyan]Best Scores", RTColor::Grey, Some(darker_gray), black, (Align::Start, Align::Start));
+        render_button(con, 40, 5, 37, "#[magenta]History", RTColor::Grey, Some(darker_gray), black, (Align::Start, Align::Start));
 
     }
 }
