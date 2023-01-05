@@ -149,8 +149,8 @@ pub fn render_popup_window (
     bg_char: Option<u16>
 ) {
     con.rectangle(
-        x - anchor.0.value(w as i32),
-        y - anchor.1.value(h as i32),
+        x + anchor.0.value(w as i32),
+        y + anchor.1.value(h as i32),
         w,
         h,
         fore,
@@ -168,5 +168,4 @@ pub fn render_paused_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
 pub fn render_game_over_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
     render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
     con.print(x, y, "Game Over", doryen_rs::TextAlign::Center, Some(RTColor::White.value().1), None);
-    // con.print(x, y, "Game Over", doryen_rs::TextAlign::Center, Some(RTColor::White.value().1), None);
 }

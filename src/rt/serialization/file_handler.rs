@@ -46,7 +46,7 @@ pub fn load_binary(path: &str) -> Result<Vec<u8>, std::io::Error> {
     // read the file and store on buffer
     f.read_to_end(&mut buffer)?;
 
-    println!("file_handler.load_binary -- path: {} | num_bytes: {} | buffer: {:?} | return: {:?}", path, num_bytes, buffer, &buffer[num_bytes..]);
+    // println!("file_handler.load_binary -- path: {} | num_bytes: {} | buffer: {:?} | return: {:?}", path, num_bytes, buffer, &buffer[num_bytes..]);
 
     // skip 24 bytes from the beggining of the buffer and return the result
     Ok(buffer[num_bytes..].to_vec())
