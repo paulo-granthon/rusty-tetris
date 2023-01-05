@@ -8,17 +8,16 @@ const PATH_BEST: &str = "data/scores/best";
 const MAX_BEST_LENGTH: usize = 100;
 
 // formats the given data to binary
-fn to_bytes (player: u8, game_mode: u8, score: i32) -> [u8; 4] {
+fn to_bytes (player_id: u8, game_mode: u8, score: i32) -> [u8; 4] {
 
     // get the score as be_bytes
     let mut bytes = (score / 10).to_be_bytes();
 
     // replace the first u8 element with 4 bytes for the player and 4 bytes for the gamemode
-    bytes[0] = (player << 4) + game_mode;
+    bytes[0] = (player_id << 4) + game_mode;
 
     // return the result
     bytes
-
 }
 
 // stores the given score on history and recalculates the best scores considering the new entry
