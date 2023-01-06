@@ -15,10 +15,10 @@ fn main() {
 
     // use profile_tracker::*;
 
-    // // let _ = save_profile("Paulo");
-    // // let _ = save_profile("Tânia");
-    // // let _ = save_profile("name w/ 16 chars");
-    // // let _ = save_profile("()*#@\"\")}");
+    // let _ = save_profile("Paulo");
+    // let _ = save_profile("Tânia");
+    // let _ = save_profile("name w/ 16 chars");
+    // let _ = save_profile("()*#@\"\")}");
 
     // let profiles = match get_profiles() { Ok(x) => x, Err(_) => vec![] };
 

@@ -12,7 +12,7 @@ enum Action {
 
 // defines the state "Scores"
 pub struct Scores {
-    scores: Vec<(Vec<(u8, u8, i32)>, Vec<(u8, u8, i32)>)>,
+    scores: Vec<(String, Vec<(u8, u8, i32)>, Vec<(u8, u8, i32)>)>,
     position: (usize, usize),
     inputmap: Vec::<crate::KeyMap>,
     actions: [[Action; 3]; 3]
@@ -24,11 +24,33 @@ impl Scores {
     // initialize the state, loading the score data of all profiles
     pub fn new () -> Self {
         use crate::rt::serialization::score_tracker::*;
+        use crate::rt::serialization::profile_tracker::get_profiles;
+
+        // initialize player index and scores vec
+        let mut scores = vec![(
+            "All".to_owned(),
+            load_history(None, None).unwrap(),
+            load_best(None, None).unwrap()
+        )];
+
+        let profiles = get_profiles().expect("error loading profiles");
+
+        for i in 0..profiles.len() {
+            let player = Some(i as u8 + 1);
+
+            match (load_history(player, None), load_best(player, None)) {
+
+                (Ok(hist), Ok(best)) if hist.len() > 0 || best.len() > 0 => {
+                    scores.push((profiles[i].to_string(), hist, best));
+                },
+                _=> {}
+            }
+
+        }
+
+
         Self {
-            scores: vec![(
-                load_history(None, None).unwrap(),
-                load_best(None, None).unwrap()
-            )],
+            scores,
             position: (0, 0),
             inputmap: vec![],
             actions: [
@@ -123,27 +145,27 @@ impl RustyEngine for Scores {
         // println!("{} | {}", self.position.1, self.scores[self.position.0].1.len());
 
         // render best
+        for i in 0..self.scores[self.position.0].2.len() {
+            
+            // get the score record
+            let record = self.scores[self.position.0].2[i];
+
+            // render 
+            render_button(con, 0, 10 + (i as i32 - self.position.1 as i32) * 5, 40, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
+        }
+
+        // render history
         for i in 0..self.scores[self.position.0].1.len() {
             
             // get the score record
             let record = self.scores[self.position.0].1[i];
 
             // render 
-            render_button(con, 1, 10 + (i as i32 - self.position.1 as i32) * 5, 38, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
-        }
-
-        // render history
-        for i in 0..self.scores[self.position.0].0.len() {
-            
-            // get the score record
-            let record = self.scores[self.position.0].0[i];
-
-            // render 
             render_button(con, 40, 10 + (i as i32 - self.position.1 as i32) * 5, 37, format!("Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
         }
         
         // render title
-        render_button(con, 0, 0, CONSOLE_WIDTH, "Scores", blue, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 0, 0, CONSOLE_WIDTH, format!("Scores: {}", self.scores[self.position.0].0).as_str(), blue, Some(darker_gray), None, (Align::Start, Align::Start));
 
         // renders the Esc button 
         render_button(con, 0, 0, 7, "Esc", red, Some(darker_gray), None, (Align::Start, Align::Start));

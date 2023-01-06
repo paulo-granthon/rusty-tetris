@@ -39,7 +39,7 @@ impl GameMode {
         match self {
 
             // singleplayer: track the score of the Game on this GameMode
-            GameMode::SinglePlayer(game) => track_score(game.player as u8, self.id(), game.score),
+            GameMode::SinglePlayer(game) => track_score(2, self.id(), game.score),
 
             // versus: track the score of both instances of Game
             GameMode::Versus(game1, game2) => {

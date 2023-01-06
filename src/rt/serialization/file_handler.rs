@@ -31,7 +31,7 @@ pub fn append_binary <const S: usize> (path: &str, data: [u8; S]) -> Result<(), 
 }
 
 // loads the bytes of the file at given path
-pub fn load_binary(path: &str) -> Result<Vec<u8>, std::io::Error> {
+pub fn load_binary (path: &str) -> Result<Vec<u8>, std::io::Error> {
 
     // open file with following permissions
     let mut f = OpenOptions::new()

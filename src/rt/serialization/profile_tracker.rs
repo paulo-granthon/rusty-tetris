@@ -51,7 +51,7 @@ pub fn save_profile (name: &str) -> Result<(), std::io::Error> {
     }
 }
 
-pub fn get_profiles () -> Result<Vec<(String)>, std::io::Error>{
+pub fn get_profiles () -> Result<Vec<String>, std::io::Error> {
 
     // loads the binary and match result
     match load_binary(PROFILES_PATH) {
