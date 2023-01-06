@@ -1,4 +1,5 @@
-use super::super::{write_binary, append_binary, load_binary};
+use crate::{ write_binary, append_binary, load_binary };
+
 
 // path to the profiles file
 const PROFILES_PATH: &str = "data/profiles/profiles";
@@ -7,7 +8,9 @@ const PROFILES_PATH: &str = "data/profiles/profiles";
 const MAX_PROFILES: usize = 15;
 
 // formats the given profile to binary
-fn to_bytes (name: &str) -> [u8; 16] {
+fn to_bytes (name: &str) -> Result<[u8; 16], std::io::Error> {
+
+    assert!(name.len() <= 16, "profile_tracker.to_bytes() -- Error: Expected name of size <= 16 but got {} instead", name.len());
 
     // get the name as bytes
     let name_bytes = name.to_owned().into_bytes();
@@ -21,28 +24,34 @@ fn to_bytes (name: &str) -> [u8; 16] {
     }
 
     // return the result
-    bytes
+    Ok(bytes)
 }
 
 pub fn save_profile (name: &str) -> Result<(), std::io::Error> {
-    append_binary(PROFILES_PATH, to_bytes(name))
-    // match get_profiles() {
-    //     Ok(profiles) => {
-    //         let mut id = 0;
-    //         for profile in profiles {
-    //             if profile.0 <= id { continue; }
-    //             id = profile.0 + 1;
-    //         }
-    //         append_binary(PROFILES_PATH, to_bytes(name))
+    match get_profiles() {
+        Ok(profiles) => {
+            assert!(profiles.len() <= MAX_PROFILES, "profile_tracker.save_profile() -- Error: Max number of profiles reached ({})", MAX_PROFILES);
+            // let mut id = 0;
+            // for profile in profiles {
+            //     if profile.0 <= id { continue; }
+            //     id = profile.0 + 1;
+            // }
+            match to_bytes(name) {
+                Ok(name_bytes) => append_binary(PROFILES_PATH, name_bytes),
+                Err(e) => Err(e)
+            }
 
-    //     },
-    //     Err(_) => {
-    //         write_binary(PROFILES_PATH, to_bytes(name))
-    //     }
-    // }
+        },
+        Err(_) => {
+            match to_bytes(name) {
+                Ok(name_bytes) => write_binary(PROFILES_PATH, name_bytes),
+                Err(e) => Err(e)
+            }
+        }
+    }
 }
 
-pub fn get_profiles () -> Result<Vec<(u8, String)>, std::io::Error>{
+pub fn get_profiles () -> Result<Vec<(String)>, std::io::Error>{
 
     // loads the binary and match result
     match load_binary(PROFILES_PATH) {
@@ -57,18 +66,18 @@ pub fn get_profiles () -> Result<Vec<(u8, String)>, std::io::Error>{
             for i in 0..buffer.len() / 16 {
 
                 // add the following tuple to the list
-                list.push((
+                list.push(
 
                     // id: first u8
-                    buffer[i * 16],
+                    // buffer[i * 16],
 
                     // score: the 3 remaining u8
                     // i32::from_be_bytes([0, buffer[(i * 4) + 1], buffer[(i * 4) + 2], buffer[(i * 4) + 3]]) * 10
-                    match String::from_utf8(buffer[(i * 16) + 1 .. (i * 16) + 16].to_vec()) {
+                    match String::from_utf8(buffer[(i * 16) .. (i * 16) + 16].to_vec()) {
                         Ok(name) => name.trim_matches(char::from(0)).to_string(),
-                        Err(_) => "".to_string()
+                        Err(_) => "!!invalid name!!".to_string()
                     }
-                ))
+                )
             }
 
             // return the result

@@ -9,6 +9,8 @@ const MAX_BEST_LENGTH: usize = 100;
 
 // formats the given data to binary
 fn to_bytes (player_id: u8, game_mode: u8, score: i32) -> [u8; 4] {
+    assert!(player_id <= 16, "score_tracker.to_bytes() -- Error: Expected player of id <= 16 but got {} instead", player_id);
+    debug_assert!(game_mode <= 16, "score_tracker.to_bytes() -- Error: Expected game_mode of id <= 16 but got {} instead", game_mode);
 
     // get the score as be_bytes
     let mut bytes = (score / 10).to_be_bytes();
