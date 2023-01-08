@@ -88,3 +88,11 @@ pub fn get_profiles () -> Result<Vec<String>, std::io::Error> {
         Err(e) => Err(e)
     }
 }
+
+pub fn set_profile (profile: usize) {
+
+}
+
+pub fn load_profile () -> Option<usize> {
+    None
+}

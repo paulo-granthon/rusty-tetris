@@ -1,10 +1,11 @@
-use crate::{InputHandler, render_button, RTColor, GameEvent, render_logo, RustyEngine};
+use crate::{RustyEngine, GameEvent, InputHandler, RTColor, render_logo, render_button };
 use crate::{CONSOLE_HEIGHT, CONSOLE_WIDTH};
 
 // for action distinction
 enum Action {
     Play,
     Versus,
+    Profile,
     Scores,
     Settings,
     Exit,
@@ -16,6 +17,7 @@ impl Action {
         match self {
             Action::Play     => "Play",
             Action::Versus   => "Versus",
+            Action::Profile  => "Profiles",
             Action::Scores   => "Scores",
             Action::Settings => "Settings",
             Action::Exit     => "Exit",        
@@ -25,6 +27,7 @@ impl Action {
         match self {
             Action::Play     => RTColor::Cyan,
             Action::Versus   => RTColor::Magenta,
+            Action::Profile  => RTColor::Yellow,
             Action::Scores   => RTColor::Green,
             Action::Settings => RTColor::Blue,
             Action::Exit     => RTColor::Red,        
@@ -33,9 +36,10 @@ impl Action {
 }
 
 // lists the possible idenfiable actions of the main_menu
-const ACTIONS: [Action; 5] = [
+const ACTIONS: [Action; 6] = [
     Action::Play,
     Action::Versus,
+    Action::Profile,
     Action::Scores,
     Action::Settings,
     Action::Exit,
@@ -72,6 +76,7 @@ impl MainMenu {
             // returns Some GameEvent matching the action
             Action::Play      => return Some(GameEvent::new_game()),
             Action::Versus    => return Some(GameEvent::new_game_versus()),
+            Action::Profile   => return Some(GameEvent::profiles()),
             Action::Scores    => return Some(GameEvent::scores()),
             Action::Settings  => return Some(GameEvent::settings()),
             Action::Exit      => return Some(GameEvent::Exit),

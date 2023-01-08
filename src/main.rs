@@ -81,7 +81,7 @@ fn main() {
         vsync: true,
         fullscreen: false,
         show_cursor: true,
-        resizable: false,
+        resizable: true,
         intercept_close_request: false,
         max_fps: MAX_FPS,
     });

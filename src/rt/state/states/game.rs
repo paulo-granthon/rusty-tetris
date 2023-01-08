@@ -346,7 +346,7 @@ impl Game {
 
             // calculate and add to score
             self.score += score_sum * score_sum * 10;
-            self.move_y_cooldown = (self.move_y_cooldown as i32 - (self.move_y_cooldown as i32 / 30 * score_sum)).max(0) as u32;
+            self.move_y_cooldown = (self.move_y_cooldown as i32 - (self.move_y_cooldown as i32 / 30 * score_sum).max(1)).max(0) as u32;
             println!("score: {} (+{}) | new speed: {}", self.score, score_sum * score_sum * 10, self.move_y_cooldown);
         }                    
 

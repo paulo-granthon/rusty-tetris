@@ -1,85 +1,11 @@
 use doryen_rs::{Engine, DoryenApi, UpdateEvent};
-use crate::states:: {Game, MainMenu, Scores, Settings};
-use super::super::{RustyEngine, RTColor, clear};
-
-// wrapper for Game 
-pub enum GameMode {
-    SinglePlayer(Game),
-    Versus(Game, Game),
-}
-
-// logic implementation for GameMode
-impl GameMode {
-
-    // creates a GameMode instance for singleplayer
-    pub fn singleplayer() -> Self {
-        GameMode::SinglePlayer(Game::singleplayer())
-    }
-
-    // creates a GameMode instance for versus mode with two Game instances
-    pub fn versus() -> Self {
-        GameMode::Versus(Game::versus(1), Game::versus(2))
-    }
-    
-    // matches GameMode to a unique id for serialization
-    pub fn id (&self) -> u8 {
-        match self {
-            GameMode::SinglePlayer(_) => 0,
-            GameMode::Versus(_, _) => 1,
-        }
-    }
-
-    // called when game ends to track scores
-    pub fn game_over (&self) {
-
-        // import score_tracker for this function only
-        use crate::rt::serialization::score_tracker::*;
-
-        // match GameMode
-        match self {
-
-            // singleplayer: track the score of the Game on this GameMode
-            GameMode::SinglePlayer(game) => track_score(2, self.id(), game.score),
-
-            // versus: track the score of both instances of Game
-            GameMode::Versus(game1, game2) => {
-                track_score(game1.player as u8, self.id(), game1.score);
-                track_score(game2.player as u8, self.id(), game2.score);
-            }
-        }
-    }
-
-    // redirects the init method to the Game of the GameMode
-    pub fn init (&mut self) {
-        match self {
-            GameMode::SinglePlayer(game) => game.init(),
-            GameMode::Versus(game1, game2) => { game1.init(); game2.init() },
-        }
-    }
-
-    // redirects the update method to the Game of the GameMode
-    pub fn update (&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
-        match self {
-            GameMode::SinglePlayer(game) => game.update(api),
-            GameMode::Versus(game1, game2) => match ( game1.update(api).0, game2.update(api).0 ) {
-                (Some(r1), Some(_)) => (Some(r1), None),
-                _=> (None, None)
-            }
-        }
-    }
-
-    // redirects the render method to the Game of the GameMode
-    pub fn render (&mut self, api: &mut dyn DoryenApi) {
-        match self {
-            GameMode::SinglePlayer(game) => game.render(api),
-            GameMode::Versus(game1, game2) => { game1.render(api); game2.render(api) }
-        }
-    }
-}
+use crate::states:: {MainMenu, Profiles, GameMode, Scores, Settings};
+use crate::{RustyEngine, RTColor, profile_tracker, clear};
 
 // wrapper for state
 pub enum GameState {
     MainMenu(MainMenu),
+    Profiles(Profiles),
     Game(GameMode),
     Scores(Scores),
     Settings(Settings),
@@ -90,6 +16,7 @@ impl GameState {
 
     // initialization
     pub fn main_menu    () -> Self { GameState::MainMenu(MainMenu::new()) }
+    pub fn profiles     () -> Self { GameState::Profiles(Profiles::new()) }
     pub fn singleplayer () -> Self { GameState::Game(GameMode::singleplayer()) }
     pub fn versus       () -> Self { GameState::Game(GameMode::versus()) }
     pub fn scores       () -> Self { GameState::Scores(Scores::new()) }
@@ -98,7 +25,9 @@ impl GameState {
 
 // defines events to be returned by the GameStates to the StateHandler 
 pub enum GameEvent {
+    SetProfile(usize),
     State(GameState),
+    PreviousState,
     GameOver,
     Exit,
 }
@@ -106,6 +35,7 @@ pub enum GameEvent {
 // GameEvent::State initialization methods
 impl GameEvent {
     pub fn main_menu        () -> Self { GameEvent::State(GameState::main_menu()) }
+    pub fn profiles         () -> Self { GameEvent::State(GameState::profiles()) }
     pub fn new_game         () -> Self { GameEvent::State(GameState::singleplayer()) }
     pub fn new_game_versus  () -> Self { GameEvent::State(GameState::versus()) }
     pub fn scores           () -> Self { GameEvent::State(GameState::scores()) }
@@ -116,27 +46,30 @@ impl GameEvent {
 impl GameState {
     fn init(&mut self) {
         match self {
-            Self::MainMenu(state) => state.init(),
-            Self::Game(state)     => state.init(),
-            Self::Scores(state)     => state.init(),
-            Self::Settings(state) => state.init(),
+            Self::MainMenu(state)  => state.init(),
+            Self::Profiles(state)  => state.init(),
+            Self::Game(state)      => state.init(),
+            Self::Scores(state)      => state.init(),
+            Self::Settings(state)  => state.init(),
         }
     }
     fn update(&mut self, api: &mut dyn DoryenApi) -> (Option<GameEvent>, Option<UpdateEvent>) {
         match self {
-            Self::MainMenu(state) => state.update(api),
-            Self::Game(state)     => state.update(api),
-            Self::Scores(state)     => state.update(api),
-            Self::Settings(state) => state.update(api),
+            Self::MainMenu(state)  => state.update(api),
+            Self::Profiles(state)  => state.update(api),
+            Self::Game(state)      => state.update(api),
+            Self::Scores(state)      => state.update(api),
+            Self::Settings(state)  => state.update(api),
         }
     }
     fn render(&mut self, api: &mut dyn DoryenApi) {
         clear(api.con());
         match self {
-            Self::MainMenu(state) => state.render(api),
-            Self::Game(state)     => state.render(api),
-            Self::Scores(state)     => state.render(api),
-            Self::Settings(state) => state.render(api),
+            Self::MainMenu(state)  => state.render(api),
+            Self::Profiles(state)  => state.render(api),
+            Self::Game(state)      => state.render(api),
+            Self::Scores(state)      => state.render(api),
+            Self::Settings(state)  => state.render(api),
         }
     }
 }
@@ -144,6 +77,8 @@ impl GameState {
 // defines the StateHandler, responsible for storing the current state of the game and redirecting the engine's methods 
 pub struct StateHandler {
     pub state: GameState,
+    pub previous_state: Option<GameState>,
+    pub profile: u8,
 }
 
 // logic implementation for StateHandler
@@ -151,13 +86,44 @@ impl StateHandler {
 
     // creates the StateHandler
     pub fn new () -> Self {
-        Self { state: GameState::MainMenu(super::main_menu::MainMenu::new()) }
+        Self {
+            state: GameState::main_menu(), 
+            previous_state: None, 
+            profile: match profile_tracker::load_profile() { 
+                Some(profile) => profile as u8, 
+                None => 0 
+            }
+        }
     }
 
     // Sets the state of the StateHandler
     pub fn set_state(&mut self, state: GameState) {
         self.state = state;
         self.state.init();
+    }
+
+    fn previous_state(&mut self) {
+        let state = match &self.previous_state {
+            Some(state) => match state {
+                GameState::Game(gamemode) => match gamemode {
+                    GameMode::SinglePlayer(_) => GameState::singleplayer(), 
+                    GameMode::Versus(_,_) => GameState::versus()
+                },
+                GameState::MainMenu(_) => GameState::main_menu(),
+                GameState::Profiles(_) => GameState::profiles(),
+                GameState::Scores(_) => GameState::scores(),
+                GameState::Settings(_) => GameState::settings(),
+            },
+            None => GameState::main_menu()
+        
+        };
+        self.set_state(state);
+    } 
+
+    // Sets the current profile 
+    fn set_profile (&mut self, profile: usize) {
+        self.profile = profile as u8;
+        profile_tracker::set_profile(profile)
     }
 }
 
@@ -185,13 +151,19 @@ impl Engine for StateHandler {
 
             // some GameEvent is returned from state, match the actionn
             Some(event) => match event {
+
+                // state requests the profile set
+                GameEvent::SetProfile(profile) => self.set_profile(profile),
                 
                 // state returns a redirect to another state
                 GameEvent::State(state) => self.set_state(state),
 
+                // state requests to move to the previous state
+                GameEvent::PreviousState => self.previous_state(),
+
                 // state alerts that the player lost the game
                 GameEvent::GameOver => match &self.state {
-                    GameState::Game(game) => { game.game_over(); self.set_state(GameState::main_menu()) },
+                    GameState::Game(game) => { game.game_over(self.profile); self.set_state(GameState::main_menu()) },
                     _=> {} 
                 }
 
