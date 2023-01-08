@@ -119,10 +119,10 @@ impl RustyEngine for Scores {
         let white = RTColor::White;
         let blue = RTColor::Blue;
         let red = RTColor::Red;
-        // let gray = RTColor::Grey.value().1;
-        let dark_gray = RTColor::DarkGrey.value().1;
-        let darker_gray = RTColor::DarkerGrey.value().1;
-        let black = RTColor::Black.value().1;
+        // let gray = RTColor::Grey.u8();
+        let dark_gray = RTColor::DarkGrey.u8();
+        let darker_gray = RTColor::DarkerGrey.u8();
+        let black = RTColor::Black.u8();
 
         // render lists bg
         render_rect  (con, 0,  5, 40, CONSOLE_HEIGHT - 5, None, Some(darker_gray), (Align::Start, Align::Start));

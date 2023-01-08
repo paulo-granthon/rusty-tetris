@@ -116,9 +116,9 @@ impl RustyEngine for MainMenu {
         render_logo(con, half_con_width, 1);
 
         // reference the following colors 
-        let white_colr = RTColor::White.value().1;
-        let fore_color = RTColor::DarkerGrey.value().1;
-        let black_colr = RTColor::Black.value().1;
+        let white_colr = RTColor::White.u8();
+        let fore_color = RTColor::DarkerGrey.u8();
+        let black_colr = RTColor::Black.u8();
 
         // calulate the visual height of the menu
         let menu_height = ACTIONS.len() as i32 * 3;
@@ -127,7 +127,7 @@ impl RustyEngine for MainMenu {
         for i in 0..ACTIONS.len() {
 
             // reference the color of the action to define the render_button colors
-            let text_color = ACTIONS[i].color().value().1;
+            let text_color = ACTIONS[i].color().u8();
 
             // render the button with the text
             render_button(

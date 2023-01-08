@@ -135,7 +135,7 @@ impl Engine for StateHandler {
 
         // register colors 
         for color in RTColor::iter() {
-            api.con().register_color(color.value().0, color.value().1);
+            api.con().register_color(color.text(), color.u8());
         } 
         self.state.init()
     }

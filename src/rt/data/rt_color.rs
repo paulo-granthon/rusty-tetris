@@ -24,20 +24,36 @@ impl RTColor {
         static RTCOLORS: [RTColor; COUNT] = [Black, White, Red, Green, Blue, Yellow, Magenta, Cyan, Orange];
         RTCOLORS.iter()
     }
-    pub fn value(&self) -> (&str, (u8, u8, u8, u8)) {
-        match *self {
-            Black       => ("black",        (0,     0,      0,      255)),
-            White       => ("white",        (255,   255,    255,    255)),
-            Red         => ("red",          (255,   92,     92,     255)),
-            Green       => ("green",        (92,    255,    92,     255)),
-            Blue        => ("blue",         (92,    92,     255,    255)),
-            Yellow      => ("yellow",       (255,   255,    92,     255)),
-            Magenta     => ("magenta",      (255,   92,     255,    255)),
-            Cyan        => ("cyan",         (92,    255,    255,    255)),
-            Orange      => ("orange",       (255,   92,     0,      255)),
-            Grey        => ("grey",         (127,   127,    127,    255)),
-            DarkGrey    => ("dark_grey",    (92,    92,     92,     255)),
-            DarkerGrey  => ("darker_grey",  (46,    46,     46,     255)),
+    pub fn text (&self) -> &str {
+        match self {
+            Black       => "black",
+            White       => "white",
+            Red         => "red",
+            Green       => "green",
+            Blue        => "blue",
+            Yellow      => "yellow",
+            Magenta     => "magenta",
+            Cyan        => "cyan",
+            Orange      => "orange",
+            Grey        => "grey",
+            DarkGrey    => "dark_grey",
+            DarkerGrey  => "darker_grey",
+        }
+    }
+    pub fn u8 (&self) -> (u8, u8, u8, u8) {
+        match self {
+            Black       => (0,     0,      0,      255),
+            White       => (255,   255,    255,    255),
+            Red         => (255,   92,     92,     255),
+            Green       => (92,    255,    92,     255),
+            Blue        => (92,    92,     255,    255),
+            Yellow      => (255,   255,    92,     255),
+            Magenta     => (255,   92,     255,    255),
+            Cyan        => (92,    255,    255,    255),
+            Orange      => (255,   92,     0,      255),
+            Grey        => (127,   127,    127,    255),
+            DarkGrey    => (92,    92,     92,     255),
+            DarkerGrey  => (46,    46,     46,     255),
         }
     }
 }

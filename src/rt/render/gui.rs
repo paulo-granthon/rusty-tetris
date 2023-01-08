@@ -69,8 +69,8 @@ pub fn render_logo (con: &mut Console, x: i32, y: i32) {
         
     ];
 
-    // let fore_color = super::RTColor::Magenta.value().1;
-    // let back_color = super::RTColor::DarkGrey.value().1;
+    // let fore_color = super::RTColor::Magenta.u8();
+    // let back_color = super::RTColor::DarkGrey.u8();
 
     let mut color_index: usize = 0;
 
@@ -131,6 +131,6 @@ pub fn render_button (con: &mut Console,
     let x_offs = anchor.0.value(width as i32);
     let y_offs = anchor.1.value(BUTTON_HEIGHT as i32);
     con.rectangle(x + x_offs, y + y_offs, width, BUTTON_HEIGHT, fore, back, Some('+' as u16));
-    con.rectangle(x + x_offs, y + y_offs, width, BUTTON_HEIGHT, Some(color.value().1), None, None);
-    con.print_color(x + x_offs + (width as i32 / 2), y + y_offs + (BUTTON_HEIGHT as i32 / 2), format!("#[{}]{}", color.value().0, text).as_str(), doryen_rs::TextAlign::Center, None);
+    con.rectangle(x + x_offs, y + y_offs, width, BUTTON_HEIGHT, Some(color.u8()), None, None);
+    con.print_color(x + x_offs + (width as i32 / 2), y + y_offs + (BUTTON_HEIGHT as i32 / 2), format!("#[{}]{}", color.text(), text).as_str(), doryen_rs::TextAlign::Center, None);
 }

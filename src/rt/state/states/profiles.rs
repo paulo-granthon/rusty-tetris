@@ -6,6 +6,16 @@ enum Action {
     // Delete,
 }
 
+impl Action {
+    fn text (&self) -> &str {
+        match self {
+            Action::Play => "Play",
+            // Action::Rename => "Play",
+            // Action::Delete => "Play",
+        }
+    }
+}
+
 const ACTIONS: [Action; 1] = [
     Action::Play,
     // Action::Rename,
@@ -86,11 +96,11 @@ impl RustyEngine for Profiles {
 
         let white = RTColor::White;
         let red = RTColor::Red;
-        let dark_gray = RTColor::DarkGrey.value().1;
-        let darker_gray = RTColor::DarkerGrey.value().1;
-        let black = RTColor::Black.value().1;
+        let dark_gray = RTColor::DarkGrey.u8();
+        let darker_gray = RTColor::DarkerGrey.u8();
+        let black = RTColor::Black;
 
-        render_rect(con, CONSOLE_WIDTH as i32, 8, 3, CONSOLE_HEIGHT - 11, Some(('|', darker_gray)), Some(black), (Align::End, Align::Start));
+        render_rect(con, CONSOLE_WIDTH as i32, 8, 3, CONSOLE_HEIGHT - 11, Some(('|', darker_gray)), Some(black.u8()), (Align::End, Align::Start));
         if self.profiles.len() > 0 {
             let max_list_len = self.profiles.len() as i32;
             let scrollbar_height = (CONSOLE_HEIGHT as i32 - 11 - (max_list_len - 14)).max(1) as u32;
@@ -98,17 +108,22 @@ impl RustyEngine for Profiles {
         }
 
         for i in 0..self.profiles.len() {
-            let fore = if i == self.cursor_pos.0 { Some(darker_gray) } else { None };
-            let back = Some(if i == self.cursor_pos.0 { white.value().1 } else { darker_gray });
-            render_button(con, 1, i as i32 * 5 + 5, 20, self.profiles[i].as_str(), red, fore, back, Align::start2());
+            render_button(con, 1, i as i32 * 5 + 5, 20, self.profiles[i].as_str(), white, None, Some(darker_gray), Align::start2());
+            for j in 0..ACTIONS.len() {
+                let color = if i == self.cursor_pos.0 { red } else { white };
+                let fore = if i == self.cursor_pos.0 { Some(white.u8()) } else { None };
+                let back = Some(if i == self.cursor_pos.0 { white.u8() } else { darker_gray });    
+                render_button(con, j as i32 * 21 + 21, i as i32 * 5 + 5, 20, ACTIONS[j].text(), color, fore, back, Align::start2());
+
+            }
         }
         
         render_rect(con, CONSOLE_WIDTH as i32, 5, 3, 3, Some(('-', darker_gray)), Some(dark_gray), (Align::End, Align::Start));
         con.ascii(CONSOLE_WIDTH as i32 - 2, 6, 30);
-        con.fore(CONSOLE_WIDTH as i32 - 2, 6, black);
+        con.fore(CONSOLE_WIDTH as i32 - 2, 6, black.u8());
         render_rect(con, CONSOLE_WIDTH as i32, CONSOLE_HEIGHT as i32, 3, 3, Some(('-', darker_gray)), Some(dark_gray), (Align::End, Align::End));
         con.ascii(CONSOLE_WIDTH as i32 - 2, CONSOLE_HEIGHT as i32 - 2,31);
-        con.fore(CONSOLE_WIDTH as i32 - 2, CONSOLE_HEIGHT as i32 - 2,black);
+        con.fore(CONSOLE_WIDTH as i32 - 2, CONSOLE_HEIGHT as i32 - 2,black.u8());
 
         // render title
         render_button(con, 0, 0, CONSOLE_WIDTH, "Profiles", white, Some(darker_gray), None, (Align::Start, Align::Start));
@@ -125,9 +140,12 @@ impl InputHandler for Profiles {
     // register the inputs without category distinction
     fn register_inputs (&mut self) {
         self.inputmap = vec![
+            crate::KeyMap::new("Escape",        "", None ),
             crate::KeyMap::new("Enter",         "", None ),
-            crate::KeyMap::new("ArrowUp",       "", Some(4) ),
-            crate::KeyMap::new("ArrowDown",     "", Some(4) ),
+            crate::KeyMap::new("ArrowUp",       "", Some(6) ),
+            crate::KeyMap::new("ArrowDown",     "", Some(6) ),
+            crate::KeyMap::new("ArrowLeft",     "", Some(6) ),
+            crate::KeyMap::new("ArrowRight",    "", Some(6) ),
         ];
     }
 
@@ -141,6 +159,7 @@ impl InputHandler for Profiles {
             if self.inputmap[index].trigger(input).to_owned() { match self.inputmap[index].key_text.as_str() {
 
                 // before paused check game inputs
+                "Escape"        => return Some(GameEvent::PreviousState),
                 "Enter"         => return self.action(),
                 "ArrowUp"       => return self.move_cursor(-1, 0),
                 "ArrowDown"     => return self.move_cursor(1,  0),

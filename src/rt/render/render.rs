@@ -20,7 +20,7 @@ pub const NEXT_CON_WIDTH : u32 = 6;
 pub const NEXT_CON_HEIGHT : u32 = 6;
 
 pub fn clear (con: &mut Console) {
-    con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
+    con.clear(Some(RTColor::Black.u8()), Some(RTColor::Black.u8()), Some(' ' as u16));
 }
 
 // renders a playfield
@@ -29,7 +29,7 @@ pub fn render_playfield<'a, const W: usize, const H: usize> (playfield_con: Opti
     match playfield_con {
         Some(pfcon) => {
 
-            pfcon.clear(None, Some(RTColor::White.value().1), Some(' ' as u16));
+            pfcon.clear(None, Some(RTColor::White.u8()), Some(' ' as u16));
 
             // render the playfield
             pfcon.rectangle(
@@ -50,10 +50,10 @@ pub fn render_playfield<'a, const W: usize, const H: usize> (playfield_con: Opti
                                 pfcon,
                                 x as i32,
                                 y as i32,
-                                color.value().1, 
+                                color.u8(), 
                                 scale,
                                 1, 1,
-                                Some(RTColor::Grey.value().1)
+                                Some(RTColor::Grey.u8())
                             ),
                             None => continue
                         };
@@ -79,7 +79,7 @@ pub fn render_tetromino<'a>(t_con: Option<&'a mut Console>, tetromino: &Option<T
         Some(con) => {
 
             // clear the Tetromino's console 
-            // con.clear(None, Some(RTColor::White.value().1), Some(' ' as u16));
+            // con.clear(None, Some(RTColor::White.u8()), Some(' ' as u16));
 
             match tetromino {
                 Some(t) => {
@@ -88,7 +88,7 @@ pub fn render_tetromino<'a>(t_con: Option<&'a mut Console>, tetromino: &Option<T
                     for x in 0..t.grid.len() {
                         for y in 0..t.grid[0].len() {
 
-                            let color = if t.grid[x][y] { t.color.value().1 } else { RTColor::White.value().1 };
+                            let color = if t.grid[x][y] { t.color.u8() } else { RTColor::White.u8() };
                             render_block(con, pos.0 as i32 + x as i32, pos.1 as i32 + y as i32, color, scale, 0, 0, fore);
                             
                         }
@@ -135,7 +135,7 @@ pub fn render_score (con: &mut Console, x: i32, y: i32, score: i32) {
         y,
         format!("{}", score).as_str(),
         doryen_rs::TextAlign::Center,
-        Some(RTColor::Black.value().1)
+        Some(RTColor::Black.u8())
     );
 }
 
@@ -161,11 +161,11 @@ pub fn render_popup_window (
 }
 
 pub fn render_paused_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
-    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.value().1), Some(RTColor::Black.value().1), Some('/' as u16));
-    con.print(x, y, "Paused", doryen_rs::TextAlign::Center, Some(RTColor::White.value().1), None);
+    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.u8()), Some(RTColor::Black.u8()), Some('/' as u16));
+    con.print(x, y, "Paused", doryen_rs::TextAlign::Center, Some(RTColor::White.u8()), None);
 }
 
 pub fn render_game_over_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
-    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.value().1), Some(RTColor::Black.value().1), Some(' ' as u16));
-    con.print(x, y, "Game Over", doryen_rs::TextAlign::Center, Some(RTColor::White.value().1), None);
+    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.u8()), Some(RTColor::Black.u8()), Some(' ' as u16));
+    con.print(x, y, "Game Over", doryen_rs::TextAlign::Center, Some(RTColor::White.u8()), None);
 }

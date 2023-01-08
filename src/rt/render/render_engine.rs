@@ -29,7 +29,7 @@ impl RenderEngine for Game {
         let half_con_width = CONSOLE_WIDTH as i32 / 2;
         let half_con_height = CONSOLE_HEIGHT as i32 / 2;
 
-        con.back( half_con_width + player_x_offset, 0, RTColor::Orange.value().1);
+        con.back( half_con_width + player_x_offset, 0, RTColor::Orange.u8());
 
         match render_playfield(self.playfield_con.as_mut(), &self.playfield, BLOCK_SCALE as i32, !paused) {
             Some(pfcon) => {
@@ -58,13 +58,13 @@ impl RenderEngine for Game {
             },
             RunState::Over => {
                 render_game_over_popup(con, half_con_width + player_x_offset, half_con_height, 24, 7);
-                con.print(half_con_width + player_x_offset, half_con_height + 1, format!("Scored {} points!", &self.score).as_str(), doryen_rs::TextAlign::Center, Some(RTColor::Red.value().1), None);
+                con.print(half_con_width + player_x_offset, half_con_height + 1, format!("Scored {} points!", &self.score).as_str(), doryen_rs::TextAlign::Center, Some(RTColor::Red.u8()), None);
                 true
             }
             _=> false
         } { return; }
 
-        let white = Some(RTColor::White.value().1);
+        let white = Some(RTColor::White.u8());
 
         // render the current Tetromino
         let s = self.get_skip_steps(&self.cur_tetromino.to_owned().unwrap());
@@ -95,7 +95,7 @@ impl RenderEngine for Game {
 
         match self.next_con.as_mut() {
             Some (nt_con) => {
-                nt_con.clear(Some(RTColor::Black.value().1), Some(RTColor::Black.value().1), None);
+                nt_con.clear(Some(RTColor::Black.u8()), Some(RTColor::Black.u8()), None);
                 nt_con.rectangle(
                     0,
                     0,
