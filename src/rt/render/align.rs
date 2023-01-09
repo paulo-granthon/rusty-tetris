@@ -12,8 +12,7 @@ impl Align {
     // fast constructors
     pub fn center   () -> Self { Align::Fraction(2) }                           // short for Fraction(2)
     pub fn center2  () -> (Self, Self) { (Align::center(), Align::center()) }   // short for (Fraction(2), Fraction(2))
-    pub fn start    () -> Self { Align::Start }                                 // short for Fraction(2)
-    pub fn start2   () -> (Self, Self) { (Align::start(), Align::start()) }     // short for (Fraction(2), Fraction(2))
+    pub fn start2   () -> (Self, Self) { (Align::Start, Align::Start) }         // short for (Start, Start)
 
     // returns the i32 value of the Align for the given range 
     pub fn value (&self, size: i32) -> i32 {

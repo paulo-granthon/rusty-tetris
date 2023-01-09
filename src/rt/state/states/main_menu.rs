@@ -133,8 +133,8 @@ impl RustyEngine for MainMenu {
             render_button(
                 con,
                 half_con_width,
-                half_con_height - (menu_height / 2) + (i as i32 * crate::render::gui::BUTTON_HEIGHT as i32),
-                12,
+                half_con_height - (menu_height / 2) + (i as i32 * 5),
+                12, 5,
                 ACTIONS[i].text(),
 
                 // active:      black text,     white bg details,       custom bg

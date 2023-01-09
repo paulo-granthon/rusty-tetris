@@ -151,7 +151,7 @@ impl RustyEngine for Scores {
             let record = self.scores[self.position.0].2[i];
 
             // render 
-            render_button(con, 0, 10 + (i as i32 - self.position.1 as i32) * 5, 40, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
+            render_button(con, 0, 10 + (i as i32 - self.position.1 as i32) * 5, 40, 5, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
         }
 
         // render history
@@ -161,18 +161,18 @@ impl RustyEngine for Scores {
             let record = self.scores[self.position.0].1[i];
 
             // render 
-            render_button(con, 40, 10 + (i as i32 - self.position.1 as i32) * 5, 37, format!("Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
+            render_button(con, 40, 10 + (i as i32 - self.position.1 as i32) * 5, 37, 5, format!("Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
         }
         
         // render title
-        render_button(con, 0, 0, CONSOLE_WIDTH, format!("Scores: {}", self.scores[self.position.0].0).as_str(), blue, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 0, 0, CONSOLE_WIDTH, 5, format!("Scores: {}", self.scores[self.position.0].0).as_str(), blue, Some(darker_gray), None, (Align::Start, Align::Start));
 
         // renders the Esc button 
-        render_button(con, 0, 0, 7, "Esc", red, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 0, 0, 7, 5, "Esc", red, Some(darker_gray), None, (Align::Start, Align::Start));
 
         // render labels
-        render_button(con, 0,  5, 40, "#[cyan]Best Scores", RTColor::Grey, Some(darker_gray), None, (Align::Start, Align::Start));
-        render_button(con, 40, 5, 37, "#[magenta]History", RTColor::Grey, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 0,  5, 40, 5, "#[cyan]Best Scores", RTColor::Grey, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 40, 5, 37, 5, "#[magenta]History", RTColor::Grey, Some(darker_gray), None, (Align::Start, Align::Start));
 
     }
 }
@@ -184,8 +184,8 @@ impl InputHandler for Scores {
             crate::KeyMap::new("Escape",        "", None ),
             crate::KeyMap::new("ArrowUp",       "", Some(4) ),
             crate::KeyMap::new("ArrowDown",     "", Some(4) ),
-            crate::KeyMap::new("ArrowLeft",     "", Some(4) ),
-            crate::KeyMap::new("ArrowRight",    "", Some(4) ),
+            crate::KeyMap::new("ArrowLeft",     "", Some(6) ),
+            crate::KeyMap::new("ArrowRight",    "", Some(6) ),
         ];
     }
 

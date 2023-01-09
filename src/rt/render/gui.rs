@@ -1,5 +1,3 @@
-pub mod components;            pub use components::*;
-pub mod screen;            pub use screen::*;
 use doryen_rs::Console;
 use crate::{RTColor, Alpha, Align};
 
@@ -91,6 +89,7 @@ pub fn render_logo (con: &mut Console, x: i32, y: i32) {
     con.print_color(78, 78, "#[white]by Paulo Granthon", doryen_rs::TextAlign::Right, None)
 
 }
+
 fn decode_hex(s: &str) -> (u8, u8, u8, u8) {
     let result: Result<Vec<u8>, _> = (0..s.len())
         .step_by(2)
@@ -121,18 +120,17 @@ pub fn render_rect (con: &mut Console,
     );
 }
 
-pub const BUTTON_HEIGHT: u32 = 5; 
-
 pub fn render_button (con: &mut Console,
-    x: i32, y: i32, w: u32,
+    x: i32, y: i32, w: u32, h: i32,
     text: &str, color: RTColor,
     fore: Option<(u8, u8, u8, u8)>, back: Option<(u8, u8, u8, u8)>,
     anchor: (Align, Align),
 ) {
-    let width = if w == 0 {text.len() as u32 + 4 } else {w};
+    let width = if w == 0 {text.len() as u32 + 4 } else { w };
+    let height = if h == 0 { 1 } else { h } as u32;
     let x_offs = anchor.0.value(width as i32);
-    let y_offs = anchor.1.value(BUTTON_HEIGHT as i32);
-    con.rectangle(x + x_offs, y + y_offs, width, BUTTON_HEIGHT, fore, back, Some('+' as u16));
-    con.rectangle(x + x_offs, y + y_offs, width, BUTTON_HEIGHT, Some(color.u8()), None, None);
-    con.print_color(x + x_offs + (width as i32 / 2), y + y_offs + (BUTTON_HEIGHT as i32 / 2), format!("#[{}]{}", color.text(), text).as_str(), doryen_rs::TextAlign::Center, None);
+    let y_offs = anchor.1.value(height as i32);
+    con.rectangle(x + x_offs, y + y_offs, width, height, fore, back, Some('+' as u16));
+    con.rectangle(x + x_offs, y + y_offs, width, height, Some(color.u8()), None, None);
+    con.print_color(x + x_offs + (width as i32 / 2), y + y_offs + (height as i32 / 2), format!("#[{}]{}", color.text(), text).as_str(), doryen_rs::TextAlign::Center, None);
 }
