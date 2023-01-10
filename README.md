@@ -6,7 +6,7 @@ Tetris implementation with Rust
  - [x] Local versus Mode
  - [x] Score history and best scores tracking
  - [x] Persisting data with binary files
- - [ ] Profile system
+ - [x] Profile system
  - [ ] Settings
  - [ ] Mouse support
  
