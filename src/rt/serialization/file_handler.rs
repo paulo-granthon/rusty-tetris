@@ -20,6 +20,10 @@ fn _write_binary <const S: usize> (path: &str, data: [u8; S], append: bool) -> R
     }
 }
 
+pub fn clear_binary (path: &str) -> Result<(), std::io::Error> {
+    _write_binary(path, [0], false)
+}
+
 // writes a stream of bytes to the binary file at given path, replacing previous content
 pub fn write_binary <const S: usize> (path: &str, data: [u8; S]) -> Result<(), std::io::Error> {
     _write_binary(path, data, false)

@@ -1,15 +1,16 @@
-use crate::{ write_binary, append_binary, load_binary };
+use crate::{ clear_binary, append_binary, load_binary };
 
 
 // path to the profiles file
 const PROFILES_PATH: &str = "data/profiles/profiles";
 
 // maximum number of profiles 
-const MAX_PROFILES: usize = 15;
+pub const MAX_PROFILES: usize = 15;
 
 // formats the given profile to binary
-fn to_bytes (name: &str) -> Result<[u8; 16], std::io::Error> {
+fn to_bytes (name: String) -> Result<[u8; 16], std::io::Error> {
 
+    // make sure that the length of the name is at most 16  chars
     assert!(name.len() <= 16, "profile_tracker.to_bytes() -- Error: Expected name of size <= 16 but got {} instead", name.len());
 
     // get the name as bytes
@@ -27,28 +28,28 @@ fn to_bytes (name: &str) -> Result<[u8; 16], std::io::Error> {
     Ok(bytes)
 }
 
-pub fn save_profile (name: &str) -> Result<(), std::io::Error> {
-    match get_profiles() {
-        Ok(profiles) => {
-            assert!(profiles.len() <= MAX_PROFILES, "profile_tracker.save_profile() -- Error: Max number of profiles reached ({})", MAX_PROFILES);
-            // let mut id = 0;
-            // for profile in profiles {
-            //     if profile.0 <= id { continue; }
-            //     id = profile.0 + 1;
-            // }
-            match to_bytes(name) {
-                Ok(name_bytes) => append_binary(PROFILES_PATH, name_bytes),
-                Err(e) => Err(e)
-            }
+// saves the given vec of profiles, overwriting any previous profiles
+pub fn save_profiles (profiles: &Vec<String>) -> Result<(), std::io::Error> {
 
-        },
-        Err(_) => {
-            match to_bytes(name) {
-                Ok(name_bytes) => write_binary(PROFILES_PATH, name_bytes),
-                Err(e) => Err(e)
-            }
+    // clear binary while catching error
+    if let Err(err) = clear_binary(PROFILES_PATH) { return Err(err) }
+
+    // loop through given profiles
+    for i in 0..profiles.len() {
+
+        // get bytes of profile and match result
+        match to_bytes(profiles[i].to_owned()) {
+
+            // Ok: append to the file and atch if error
+            Ok(bytes) => if let Err(err) = append_binary(PROFILES_PATH, bytes) { return Err(err) },
+            
+            // Error: return the error
+            Err(err) => return Err(err)
         }
     }
+    
+    // successfull operation
+    Ok(())
 }
 
 pub fn get_profiles () -> Result<Vec<String>, std::io::Error> {

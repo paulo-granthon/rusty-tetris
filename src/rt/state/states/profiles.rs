@@ -1,11 +1,13 @@
 use crate::{RustyEngine, GameEvent, InputHandler, profile_tracker::*};
 
+// defines an Action enum to represent the available actions on the State
 enum Action {
     Play,
     Rename,
     Delete,
 }
 
+// matches Action with string
 impl Action {
     fn text (&self) -> &str {
         match self {
@@ -16,12 +18,14 @@ impl Action {
     }
 }
 
+// const actions for len() and reference through index
 const ACTIONS: [Action; 3] = [
     Action::Play,
     Action::Rename,
     Action::Delete,
 ];
 
+// defines the Profiles state
 pub struct Profiles {
     profiles: Vec<String>,
     pub inputmap: Vec::<crate::KeyMap>,
@@ -33,7 +37,10 @@ pub struct Profiles {
     exit: bool,
 }
 
+// defines the functions of the state
 impl Profiles {
+
+    // create a new instance of the state
     pub fn new () -> Self {
         Self {
             profiles: get_profiles().unwrap(), 
@@ -46,54 +53,86 @@ impl Profiles {
             exit: false,
         }
     }
-    pub fn blink (&mut self) {
-        self.cursor_anim = (self.cursor_anim + 1) % 20;
+
+    // redirects the generic action command to a corresponding action
+    fn action (&mut self) -> Option<GameEvent> {
+        
+        // if cursor is outside the range of the profiles vec (hovering the "new" button)
+        if self.cursor_pos.0 >= self.profiles.len() {
+
+            // create a new profile
+            self.create();
+
+            // start a rename for the new profile
+            return self.rename_start()
+        }
+
+        // if currently renaming a profile
+        if self.renaming { 
+
+            // action is to finish renaming
+            return self.rename_conclude();
+        }
+
+        // match the index of the cursor to the corresponding action
+        match ACTIONS[self.cursor_pos.1] {
+            Action::Play   => return self.play(),
+            Action::Rename => return self.rename_start(),
+            Action::Delete => return self.delete(),
+        };
     }
 
-    fn create (&mut self) -> Option<GameEvent> {
-        todo!()
+    // Escape command to back track
+    fn escape (&mut self) -> Option<GameEvent> {
+
+        // if currently renaming, stop renaming
+        if self.renaming {
+            self.renaming = false;
+            return None
+        }
+
+        // otherwise, apply the changes and exit the state
+        self.apply_changes();
+        Some(GameEvent::PreviousState)
     }
 
+    // syncs the changes made inside the state to the binary files 
+    fn apply_changes (&self) {
+        if let Err(err) = save_profiles(&self.profiles) { panic!("Profiles.apply_changes() -- Error applying changes: {}", err) }
+    }
+
+    // play as the profile 
     fn play (&mut self) -> Option<GameEvent> {
         self.exit = true;
+        self.apply_changes();
         Some(GameEvent::SetProfile(self.cursor_pos.0))
     }
 
+    // starts renaming a profile, locking the input to the text entry field
     fn rename_start (&mut self) -> Option<GameEvent> {
         self.renaming = true;
         self.rename_temp = self.profiles[self.cursor_pos.0].to_string();
         None
     }
 
+    // conclude the rename, restoring the default inputs and chaning the name of the profile locally
     fn rename_conclude (&mut self) -> Option<GameEvent> {
         self.renaming = false;
-        // TODO: Send to back
+        self.profiles[self.cursor_pos.0] = self.rename_temp.to_string();
         self.rename_temp = String::new();
         None
     }
-
-    fn delete(&self) -> Option<GameEvent> {
-        todo!()
+    
+    // create a new profile
+    fn create (&mut self) -> Option<GameEvent> {
+        if self.profiles.len() < MAX_PROFILES - 1 { self.profiles.push("new profile".to_string()); }
+        None
     }
 
-    fn action (&mut self) -> Option<GameEvent> {
-        if self.renaming { 
-            return self.rename_conclude();
-        }
-        match ACTIONS[self.cursor_pos.1] {
-            Action::Play => return self.play(),
-            Action::Rename => return self.rename_start(),
-            Action::Delete => return self.delete(),
-        };
-    }
-
-    fn escape (&mut self) -> Option<GameEvent> {
-        if self.renaming {
-            self.renaming = false;
-            None
-        } else {
-            Some(GameEvent::PreviousState)
-        }
+    // delete a profile
+    fn delete(&mut self) -> Option<GameEvent> {
+        self.profiles.remove(self.cursor_pos.0);
+        None
     }
 
     // sets the position of the cursor 
@@ -117,6 +156,10 @@ impl Profiles {
         None
     }
 
+    // blink animation for the text entry field's cursor during rename
+    pub fn blink (&mut self) {
+        self.cursor_anim = (self.cursor_anim + 1) % 20;
+    }
 
 }
 
