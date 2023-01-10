@@ -55,7 +55,7 @@ pub struct MainMenu {
 impl MainMenu {
 
     // initializatio
-    pub fn new() -> Self { Self {cursor_pos: 0, inputmap: vec![] }}
+    pub fn new () -> Self { Self {cursor_pos: 0, inputmap: vec![] }}
 
     // sets the position of the cursor 
     fn set_cursor(&mut self, pos: i32) -> Option<GameEvent> {
@@ -85,6 +85,16 @@ impl MainMenu {
             // _=> { println!("main_menu.action() -- unmapped action at cursor_pos '{}' ", self.cursor_pos); None }
         }
     }
+
+    pub fn render_playing_as (&self, con: &mut doryen_rs::Console, profile: usize) {
+        if profile == 0 { return; }
+        use crate::profile_tracker::profile_name;
+        let half_con_height = CONSOLE_HEIGHT as i32 / 2;
+        let half_con_width  = CONSOLE_WIDTH as i32  / 2;
+        let menu_height = ACTIONS.len() as i32 * 3;
+        con.print(half_con_width, half_con_height - (menu_height / 2) - 4, format!("Playing as {}", profile_name(profile)).as_str(), doryen_rs::TextAlign::Center, Some(RTColor::White.u8()), None);
+    }
+
 }
 
 // handle doryen-rs calls

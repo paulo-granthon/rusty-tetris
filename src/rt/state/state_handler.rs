@@ -183,7 +183,11 @@ impl Engine for StateHandler {
 
     // renders the current state
     fn render(&mut self, api: &mut dyn DoryenApi) {
-        self.state.render(api)
+        self.state.render(api);
+        match &self.state {
+            GameState::MainMenu(m) => m.render_playing_as(api.con(), self.profile as usize),
+            _=> {}
+        }
     }
     
 }

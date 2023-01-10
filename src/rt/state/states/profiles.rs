@@ -105,7 +105,7 @@ impl Profiles {
     fn play (&mut self) -> Option<GameEvent> {
         self.exit = true;
         self.apply_changes();
-        Some(GameEvent::SetProfile(self.cursor_pos.0))
+        Some(GameEvent::SetProfile(self.cursor_pos.0 + 1))
     }
 
     // starts renaming a profile, locking the input to the text entry field

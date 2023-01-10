@@ -90,6 +90,13 @@ pub fn get_profiles () -> Result<Vec<String>, std::io::Error> {
     }
 }
 
+pub fn profile_name (profile: usize) -> String {
+    match get_profiles() {
+        Ok(profiles) => profiles[profile - 1].to_string(),
+        Err(_) => "Error".to_string()
+    }
+}
+
 pub fn set_profile (profile: usize) {
 
 }
