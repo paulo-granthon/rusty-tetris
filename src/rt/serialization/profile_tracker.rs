@@ -3,6 +3,7 @@ use crate::{ clear_binary, append_binary, load_binary };
 
 // path to the profiles file
 const PROFILES_PATH: &str = "data/profiles/profiles";
+const SESSION_PATH: &str = "data/profiles/session";
 
 // maximum number of profiles 
 pub const MAX_PROFILES: usize = 15;
@@ -98,9 +99,31 @@ pub fn profile_name (profile: usize) -> String {
 }
 
 pub fn set_profile (profile: usize) {
-
+    use std::{fs::File, io::prelude::*};
+    let data = format!("CURRENT_PROFILE: {}", profile);
+    // std::fs::write(SESSION_PATH, data).expect("profile_tracker.set_profile() -- Error: Unable to write file");
+    if let Ok(mut file) = File::create(format!("{}.txt", SESSION_PATH)) {
+        let _ = write!(file, "{}", data);
+    }
 }
 
 pub fn load_profile () -> Option<usize> {
-    None
+    println!("load profile");
+    use std::{fs::File, io::prelude::*};
+    match File::open(format!("{}.txt", SESSION_PATH)) {
+        Ok(mut file) => {
+            println!("file open ok");
+            let mut content = String::new();
+            if let Err(_) = file.read_to_string(&mut content) { println!("read error"); return None }
+            let mut parts = content.split_whitespace();
+            parts.next();
+            match parts.next() {
+                Some(profile) => {
+                    profile.parse().ok()
+                },
+                None => None
+            }
+        },
+        Err(_) => {println!("file open error"); None }
+    }
 }
