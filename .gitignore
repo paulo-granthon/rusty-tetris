@@ -1,5 +1,6 @@
 /target
 *.bin
 *.pdn
+session.txt
 # data/scores/best.bin
 # data/scores/history.bin
