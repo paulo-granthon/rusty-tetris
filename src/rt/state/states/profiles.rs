@@ -31,7 +31,8 @@ pub struct Profiles {
     pub inputmap: Vec::<crate::KeyMap>,
     pub cursor_pos: (usize, usize),
     pub renaming: bool,
-    pub rename_temp: String,
+    pub renaming_curr_text: String,
+    pub renaming_prev_text: String,
     cursor_anim: u8,
     scroll_pos: i32,
     exit: bool,
@@ -47,7 +48,8 @@ impl Profiles {
             inputmap: vec![], 
             cursor_pos: (0, 0), 
             renaming: false,
-            rename_temp: String::new(),
+            renaming_curr_text: String::new(),
+            renaming_prev_text: String::new(),
             cursor_anim: 0,
             scroll_pos: 0, 
             exit: false,
@@ -88,6 +90,8 @@ impl Profiles {
         // if currently renaming, stop renaming
         if self.renaming {
             self.renaming = false;
+            self.renaming_curr_text = self.renaming_prev_text.to_owned();
+            self.renaming_prev_text = String::new();
             return None
         }
 
@@ -111,15 +115,19 @@ impl Profiles {
     // starts renaming a profile, locking the input to the text entry field
     fn rename_start (&mut self) -> Option<GameEvent> {
         self.renaming = true;
-        self.rename_temp = self.profiles[self.cursor_pos.0].to_string();
+        self.renaming_curr_text = self.profiles[self.cursor_pos.0].to_string();
+        self.renaming_prev_text = self.renaming_curr_text.to_owned();
         None
     }
 
     // conclude the rename, restoring the default inputs and chaning the name of the profile locally
     fn rename_conclude (&mut self) -> Option<GameEvent> {
         self.renaming = false;
-        self.profiles[self.cursor_pos.0] = self.rename_temp.to_string();
-        self.rename_temp = String::new();
+        if self.renaming_curr_text.len() < 3 { 
+            self.renaming_curr_text = self.renaming_prev_text.to_owned()
+        }
+        self.profiles[self.cursor_pos.0] = self.renaming_curr_text.to_string();
+        self.renaming_curr_text = String::new();
         None
     }
     
@@ -198,7 +206,7 @@ impl RustyEngine for Profiles {
         // profiles
         for i in 0..self.profiles.len() {
             render_rect(con, 0, i as i32 * 5 + 5, CONSOLE_WIDTH - 3, 5, None, Some(darker_gray), Align::start2());
-            let mut text = &format!("{}{}", self.rename_temp, if self.cursor_anim < 12 { '|' } else { ' ' });
+            let mut text = &format!("{}{}", self.renaming_curr_text, if self.cursor_anim < 12 { '|' } else { ' ' });
             if !self.renaming || self.cursor_pos.0 != i { text = &self.profiles[i] };
             con.print(11, i as i32 * 5 + 7, text.as_str(), doryen_rs::TextAlign::Center, Some(white.u8()), None);
             for j in 0..ACTIONS.len() {
@@ -255,12 +263,12 @@ impl InputHandler for Profiles {
             if input.key_pressed("Escape") { return self.escape() }
 
             let txt = input.text();
-            if !txt.is_empty() {
-                self.rename_temp.push_str(&txt);
+            if !txt.is_empty() && self.renaming_curr_text.len() < 16 {
+                self.renaming_curr_text.push_str(&txt);
             }
             // handle backspace
-            if input.key_pressed("Backspace") && !self.rename_temp.is_empty() {
-                self.rename_temp.pop();
+            if input.key_pressed("Backspace") && !self.renaming_curr_text.is_empty() {
+                self.renaming_curr_text.pop();
             }
             return None
         }
