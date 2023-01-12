@@ -1,6 +1,6 @@
 use doryen_rs::{Engine, DoryenApi, UpdateEvent};
 use crate::states:: {MainMenu, Profiles, GameMode, Scores, Settings};
-use crate::{RustyEngine, RTColor, profile_tracker, clear};
+use crate::{RustyEngine, Controller, RTColor, profile_tracker, clear};
 
 // wrapper for state
 pub enum GameState {
@@ -78,6 +78,7 @@ impl GameState {
 pub struct StateHandler {
     pub state: GameState,
     pub previous_state: Option<GameState>,
+    pub controller: Controller,
     pub profile: u8,
 }
 
@@ -89,6 +90,7 @@ impl StateHandler {
         Self {
             state: GameState::main_menu(), 
             previous_state: None, 
+            controller: Controller::default(),
             profile: match profile_tracker::load_profile() { 
                 Some(profile) => profile as u8, 
                 None => 0 
