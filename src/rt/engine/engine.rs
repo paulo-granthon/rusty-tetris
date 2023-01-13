@@ -1,6 +1,5 @@
 use crate::routine_handler::*;
-use crate::input_handler::*;
-use super::super::{Game, GameEvent, RunState, RenderEngine};
+use crate::{Game, GameEvent, RunState, RenderEngine, InputHandler};
 // use super::render::*;
 
 extern crate doryen_rs; use doryen_rs::{DoryenApi, UpdateEvent};

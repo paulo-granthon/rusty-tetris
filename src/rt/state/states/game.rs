@@ -1,12 +1,8 @@
+use crate::{Bag, HasBag, data::*, Controller, InputHandler, RoutineHandler};
 extern crate doryen_rs; use doryen_rs::Console;
-use crate::data::*;
-use crate::Bag;
 
 use crate::DEBUG_MOVEMENT;
-
 const DEFAULT_MOVE_Y_COOLDOWN: u32 = 240;
-
-use super::super::super::{HasBag, InputHandler, RoutineHandler};
 
 // defines the values that the move_intent resets to
 pub const RESET_MOVE_INTENT_MANUAL: (i8, i8) = (0, 0);
@@ -43,6 +39,7 @@ pub struct Game {
     pub mouse_pos: (f32, f32),
     pub inputmap: Vec::<crate::KeyMap>,
     pub routines: Vec::<crate::Routine>,
+    pub controller: Controller,
     pub player: usize,
 
 }
@@ -88,6 +85,7 @@ impl Game {
             mouse_pos: (0.0,0.0),
             inputmap: vec![],
             routines: vec![],
+            controller: match player { 0 => Controller::default(), _=> Controller::default_versus(player - 1) },
             player,
         }
     }

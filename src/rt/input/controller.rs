@@ -1,4 +1,4 @@
-enum InputID {
+pub enum InputID {
     Action,
     Left,
     Right,
@@ -61,6 +61,20 @@ impl Controller {
             ["KeyV", "KeyE"][player].to_string(),
             ["KeyB", "KeyQ"][player].to_string(),
         )
+    }
+
+    // matches InputId with associated key
+    pub fn get (&self, input: InputID) -> &str {
+        match input {
+            InputID::Action => self.action.as_str(),
+            InputID::Left => self.left.as_str(),
+            InputID::Right => self.right.as_str(),
+            InputID::Down => self.down.as_str(),
+            InputID::Up => self.up.as_str(),
+            InputID::RotateL => self.rotate_l.as_str(),
+            InputID::RotateR => self.rotate_r.as_str(),
+            InputID::Skip => self.skip.as_str(),
+        }
     }
 
 }
