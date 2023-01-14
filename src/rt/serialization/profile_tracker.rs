@@ -14,19 +14,7 @@ fn to_bytes (name: String) -> Result<[u8; 16], std::io::Error> {
     // make sure that the length of the name is at most 16  chars
     assert!(name.len() <= 16, "profile_tracker.to_bytes() -- Error: Expected name of size <= 16 but got {} instead", name.len());
 
-    // get the name as bytes
-    let name_bytes = name.to_owned().into_bytes();
-
-    // initialize a 16 length u8 array
-    let mut bytes: [u8; 16] = [0; 16];
-
-    // loop trough the string bytes
-    for i in 0..name_bytes.len() {
-        bytes[16 - name_bytes.len() + i] = name_bytes[i];
-    }
-
-    // return the result
-    Ok(bytes)
+    crate::file_handler::to_bytes::<16>(name, true)
 }
 
 // saves the given vec of profiles, overwriting any previous profiles
@@ -41,7 +29,7 @@ pub fn save_profiles (profiles: &Vec<String>) -> Result<(), std::io::Error> {
         // get bytes of profile and match result
         match to_bytes(profiles[i].to_owned()) {
 
-            // Ok: append to the file and atch if error
+            // Ok: append to the file and catch if error
             Ok(bytes) => if let Err(err) = append_binary(PROFILES_PATH, bytes) { return Err(err) },
             
             // Error: return the error

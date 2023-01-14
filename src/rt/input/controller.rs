@@ -9,6 +9,34 @@ pub enum InputID {
     Skip,
 }
 
+impl InputID {
+    pub fn as_str(&self) -> &str {
+        match self {
+            InputID::Action => "Action",
+            InputID::Left => "Left",
+            InputID::Right => "Right",
+            InputID::Down => "Down",
+            InputID::Up => "Up",
+            InputID::RotateL => "RotateL",
+            InputID::RotateR => "RotateR",
+            InputID::Skip => "Skip",
+        }
+    }
+    pub fn from_index (index: u8) -> Option<Self> {
+        match index {
+            0 => Some(Self::Action),
+            1 => Some(Self::Left),
+            2 => Some(Self::Right),
+            3 => Some(Self::Down),
+            4 => Some(Self::Up),
+            5 => Some(Self::RotateL),
+            6 => Some(Self::RotateR),
+            7 => Some(Self::Skip),
+            _=> None
+        }
+    }
+}
+
 pub struct Controller {
     pub action: String,
     pub left: String,
@@ -33,6 +61,19 @@ impl Controller {
         rotate_r: String,
         skip: String
     ) -> Self { Self { action, left, right, down, up, rotate_l, rotate_r, skip, }}
+
+    pub fn from_vec (list: Vec<String>) -> Self {
+        Self {
+            action:   list[0].to_owned(),
+            left:     list[1].to_owned(),
+            right:    list[2].to_owned(),
+            down:     list[3].to_owned(),
+            up:       list[4].to_owned(),
+            rotate_l: list[5].to_owned(),
+            rotate_r: list[6].to_owned(),
+            skip:     list[7].to_owned(),
+        }
+    }
 
     // default controller
     pub fn default () -> Self {
@@ -76,5 +117,17 @@ impl Controller {
             InputID::Skip => self.skip.as_str(),
         }
     }
+
+    // returns an array with all String keys of the Controller
+    pub fn get_all (&self) -> [&str; 8] {[
+        self.action.as_str(),
+        self.left.as_str(),
+        self.right.as_str(),
+        self.down.as_str(),
+        self.up.as_str(),
+        self.rotate_l.as_str(),
+        self.rotate_r.as_str(),
+        self.skip.as_str(),
+    ]}
 
 }

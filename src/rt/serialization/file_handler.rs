@@ -1,5 +1,22 @@
 use std::{fs::OpenOptions, io::{Write, Read}};
 
+// formats the given profile to binary
+pub fn to_bytes<const S: usize> (data: String, align_right: bool) -> Result<[u8; S], std::io::Error> {
+
+    // get the name as bytes
+    let name_bytes = data.to_owned().into_bytes();
+
+    // initialize a S length u8 array
+    let mut bytes: [u8; S] = [0; S];
+
+    // loop trough the string bytes
+    for i in 0..name_bytes.len() {
+        bytes[if align_right {16 - name_bytes.len() + i} else { i }] = name_bytes[i];
+    }
+
+    // return the result
+    Ok(bytes)
+}
 
 // private fn to write to binary
 fn _write_binary <const S: usize> (path: &str, data: [u8; S], append: bool) -> Result<(), std::io::Error> {
