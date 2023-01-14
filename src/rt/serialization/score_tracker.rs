@@ -1,4 +1,4 @@
-use super::super::{write_binary, append_binary, load_binary};
+use crate::{write_binary, append_binary, load_binary};
 
 // path where scores are saved
 const PATH_HISTORY: &str = "data/scores/history";

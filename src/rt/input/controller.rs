@@ -10,6 +10,8 @@ pub enum InputID {
 }
 
 impl InputID {
+
+    // returns a &str correspondingg to this InputID
     pub fn as_str(&self) -> &str {
         match self {
             InputID::Action => "Action",
@@ -22,21 +24,25 @@ impl InputID {
             InputID::Skip => "Skip",
         }
     }
-    pub fn from_index (index: u8) -> Option<Self> {
+
+    // returns a matching InputID for the given index
+    pub fn from_index (index: usize) -> Self {
         match index {
-            0 => Some(Self::Action),
-            1 => Some(Self::Left),
-            2 => Some(Self::Right),
-            3 => Some(Self::Down),
-            4 => Some(Self::Up),
-            5 => Some(Self::RotateL),
-            6 => Some(Self::RotateR),
-            7 => Some(Self::Skip),
-            _=> None
+            0 => Self::Action,
+            1 => Self::Left,
+            2 => Self::Right,
+            3 => Self::Down,
+            4 => Self::Up,
+            5 => Self::RotateL,
+            6 => Self::RotateR,
+            7 => Self::Skip,
+            _ => panic!("InputID::from_index({}) -- index out of range", index)
         }
     }
+
 }
 
+#[derive(Debug)]
 pub struct Controller {
     pub action: String,
     pub left: String,
@@ -62,8 +68,9 @@ impl Controller {
         skip: String
     ) -> Self { Self { action, left, right, down, up, rotate_l, rotate_r, skip, }}
 
-    pub fn from_vec (list: Vec<String>) -> Self {
-        Self {
+    pub fn from_vec (list: Vec<String>) -> Option<Self> {
+        if list.len() != 8 { return None }
+        Some(Self {
             action:   list[0].to_owned(),
             left:     list[1].to_owned(),
             right:    list[2].to_owned(),
@@ -72,7 +79,7 @@ impl Controller {
             rotate_l: list[5].to_owned(),
             rotate_r: list[6].to_owned(),
             skip:     list[7].to_owned(),
-        }
+        })
     }
 
     // default controller
@@ -88,6 +95,9 @@ impl Controller {
             "KeyQ".to_string(),
         )
     }
+
+    pub fn default_versus1 () -> Self { Self::default_versus(0) }
+    pub fn default_versus2 () -> Self { Self::default_versus(1) }
 
     // default multiplayer controller for versus mode
     pub fn default_versus (player: usize) -> Self {
@@ -118,6 +128,22 @@ impl Controller {
         }
     }
 
+    
+    // matches InputId with associated key
+    pub fn get_at (&self, index: usize) -> &str {
+        match index {
+            0 => self.action.as_str(),
+            1 => self.left.as_str(),
+            2 => self.right.as_str(),
+            3 => self.down.as_str(),
+            4 => self.up.as_str(),
+            5 => self.rotate_l.as_str(),
+            6 => self.rotate_r.as_str(),
+            7 => self.skip.as_str(),
+            _ => panic!("Controller::get_at({}) -- index out of range", index)
+        }
+    }
+
     // returns an array with all String keys of the Controller
     pub fn get_all (&self) -> [&str; 8] {[
         self.action.as_str(),
@@ -129,5 +155,21 @@ impl Controller {
         self.rotate_r.as_str(),
         self.skip.as_str(),
     ]}
+
+    // sets the key of the InputID at the given index
+    pub fn set_at (&mut self, index: usize, key: &str) {
+        match index {
+            0 => self.action = key.to_string(),
+            1 => self.left = key.to_string(),
+            2 => self.right = key.to_string(),
+            3 => self.down = key.to_string(),
+            4 => self.up = key.to_string(),
+            5 => self.rotate_l = key.to_string(),
+            6 => self.rotate_r = key.to_string(),
+            7 => self.skip = key.to_string(),
+            _ => panic!("Controller.set_at({}, {}) -- Trying to set key of InputID at invalid index", index, key) 
+
+        }
+    }
 
 }

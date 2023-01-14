@@ -57,6 +57,8 @@ pub fn load_binary (path: &str) -> Result<Vec<u8>, std::io::Error> {
     // open file with following permissions
     let mut f = OpenOptions::new()
         .read(true)
+        .write(true)
+        .create(true)
         .open(format!("{}.bin", path))?;
 
     let num_bytes = f.metadata()?.len() as usize;

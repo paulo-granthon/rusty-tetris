@@ -1,5 +1,5 @@
 
-use super::super::Game;
+use crate::Game;
 
 pub struct Routine {
     key: String,

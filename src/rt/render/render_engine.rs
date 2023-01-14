@@ -1,6 +1,6 @@
 use doryen_rs::Console;
 
-use crate::{Game, render::*, RunState};
+use crate::{Game, RunState, render::*, RTColor};
 
 use crate::DEBUG_RENDER;
 
@@ -109,7 +109,7 @@ impl RenderEngine for Game {
             None => {}
         }
 
-        use super::super::HasBag;
+        use crate::HasBag;
         match self.bag_peek_next() {
             Some(next_tetromino) => { 
                 let nt = next_tetromino.get();

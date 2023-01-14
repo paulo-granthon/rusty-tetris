@@ -142,7 +142,7 @@ impl Game {
         self.next_con = Some(Console::new(6 * BLOCK_SCALE as u32, 8 * BLOCK_SCALE as u32));
 
         if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 {
-            // use super::super::super::{write_binary, load_binary};
+            // use crate::{write_binary, load_binary};
             // write_binary("scores/run", self.score.to_be_bytes());
 
             // use crate::rt::serialization::score_tracker::*;

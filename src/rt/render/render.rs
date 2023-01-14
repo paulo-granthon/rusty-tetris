@@ -2,7 +2,7 @@ extern crate doryen_rs; use doryen_rs::Console;
 use crate::Align;
 
 use crate::data::tetromino::Tetromino;
-pub use super::super::RTColor;
+use crate::RTColor;
 
 use crate::BLOCK_SCALE;
 use crate::CONSOLE_WIDTH;   use crate::CONSOLE_HEIGHT;

@@ -15,7 +15,7 @@ fn to_bytes (input_id: u8, key: String) -> Result<[u8; 16], std::io::Error> {
 }
 
 /// saves the given controller
-pub fn save_controller (controllers: [&Controller; 3]) -> Result<(), std::io::Error> {
+pub fn save_controllers (controllers: &mut [Controller; 3]) -> Result<(), std::io::Error> {
 
     // clear binary while catching error
     if let Err(err) = clear_binary(CONFIG_PATH) { return Err(err) }
@@ -23,23 +23,33 @@ pub fn save_controller (controllers: [&Controller; 3]) -> Result<(), std::io::Er
     // loop through the controllers
     for i in 0..controllers.len() {
 
-        // get the keys of this controller
-        let keys = controllers[i].get_all();
+        // // match the controller at the index
+        // match &controllers[i] {
 
-        // loop through the keys
-        for j in 0..keys.len() {
+            // if some controller is present at the index, save it 
+            // Some(controller) => {
 
-            // convert to bytes and match result
-            match to_bytes(j as u8, keys[j].to_string()) {
+                // get the keys of this controller
+                let keys = controllers[i].get_all();
 
-                // Ok: append to the file and catch if error
-                Ok(bytes) => if let Err(err) = append_binary(format!("{}/{}", CONFIG_PATH, ["default", "versus1", "versus2"][i]).as_str(), bytes) { return Err(err) },
-                
-                // Error: return the error
-                Err(err) => return Err(err)
-            }
-            
-        }
+                // loop through the keys
+                for j in 0..keys.len() {
+
+                    // convert to bytes and match result
+                    match to_bytes(j as u8, keys[j].to_string()) {
+
+                        // Ok: append to the file and catch if error
+                        Ok(bytes) => if let Err(err) = append_binary(format!("{}/{}.bin", CONFIG_PATH, ["default", "versus1", "versus2"][i]).as_str(), bytes) { return Err(err) },
+                        
+                        // Error: return the error
+                        Err(err) => return Err(err)
+                    }
+                }
+            // }
+
+        //     // otherwise, just skip this controller
+        //     None => {}     
+        // }
     }
     
     // successfull operation
@@ -48,18 +58,17 @@ pub fn save_controller (controllers: [&Controller; 3]) -> Result<(), std::io::Er
 }
 
 /// returns the saved controller configuration
-pub fn get_controllers () -> Result<Vec<Controller>, std::io::Error> {
+pub fn get_controllers () -> Result<[Controller; 3], std::io::Error> {
 
     // loads the binary and match result
     match load_binary(CONFIG_PATH) {
 
         // file is loaded successfully
         Ok(buffer) => {
-
             let mut controllers = vec![];
 
             // loop through the loaded buffer with increments of 128 u8 -- controller
-            for i in 0..buffer.len() / 128 {
+            for i in 0..3 {
 
                 // create a vec of tuple for player, gamemode and score
                 let mut list = vec![]; 
@@ -76,11 +85,14 @@ pub fn get_controllers () -> Result<Vec<Controller>, std::io::Error> {
                     )
                 }
 
-                controllers.push(Controller::from_vec(list));
+                controllers.push(match Controller::from_vec(list) {
+                    Some(controller) => controller,
+                    None => [Controller::default, Controller::default_versus1, Controller::default_versus2][i]()
+                });
             }
 
             // return the result
-            Ok(controllers)
+            Ok(controllers.try_into().unwrap_or_else(|_| panic!("config_tracker -- Error converting Controller vec to array")))
         },
 
         // error loading binary file
