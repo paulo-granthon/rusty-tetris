@@ -18,38 +18,30 @@ fn to_bytes (input_id: u8, key: String) -> Result<[u8; 16], std::io::Error> {
 pub fn save_controllers (controllers: &mut [Controller; 3]) -> Result<(), std::io::Error> {
 
     // clear binary while catching error
-    if let Err(err) = clear_binary(CONFIG_PATH) { return Err(err) }
+    if let Err(err) = clear_binary(CONFIG_PATH) { println!("clear binary"); return Err(err) }
 
     // loop through the controllers
     for i in 0..controllers.len() {
 
-        // // match the controller at the index
-        // match &controllers[i] {
+        // get the keys of this controller
+        let keys = controllers[i].get_all();
 
-            // if some controller is present at the index, save it 
-            // Some(controller) => {
+        // loop through the keys
+        for j in 0..keys.len() {
 
-                // get the keys of this controller
-                let keys = controllers[i].get_all();
+            // convert to bytes and match result
+            match to_bytes(j as u8, keys[j].to_string()) {
 
-                // loop through the keys
-                for j in 0..keys.len() {
-
-                    // convert to bytes and match result
-                    match to_bytes(j as u8, keys[j].to_string()) {
-
-                        // Ok: append to the file and catch if error
-                        Ok(bytes) => if let Err(err) = append_binary(format!("{}/{}.bin", CONFIG_PATH, ["default", "versus1", "versus2"][i]).as_str(), bytes) { return Err(err) },
-                        
-                        // Error: return the error
-                        Err(err) => return Err(err)
-                    }
-                }
-            // }
-
-        //     // otherwise, just skip this controller
-        //     None => {}     
-        // }
+                // Ok: append to the file and catch if error
+                Ok(bytes) => {
+                    if let Err(err) = append_binary(
+                        format!("{}/{}", CONFIG_PATH, ["default", "versus1", "versus2"][i])
+                        .as_str(), bytes) { return Err(err) }
+                },
+                // Error: return the error
+                Err(err) => return Err(err)
+            }
+        }
     }
     
     // successfull operation
@@ -60,15 +52,16 @@ pub fn save_controllers (controllers: &mut [Controller; 3]) -> Result<(), std::i
 /// returns the saved controller configuration
 pub fn get_controllers () -> Result<[Controller; 3], std::io::Error> {
 
-    // loads the binary and match result
-    match load_binary(CONFIG_PATH) {
+    let mut controllers = vec![];
 
-        // file is loaded successfully
-        Ok(buffer) => {
-            let mut controllers = vec![];
+    // loop through the loaded buffer with increments of 128 u8 -- controller
+    for i in 0..3 {
+            
+        // loads the binary and match result
+        match load_binary(format!("{}/{}", CONFIG_PATH, ["default", "versus1", "versus2"][i]).as_str()) {
 
-            // loop through the loaded buffer with increments of 128 u8 -- controller
-            for i in 0..3 {
+            // file is loaded successfully
+            Ok(buffer) => {
 
                 // create a vec of tuple for player, gamemode and score
                 let mut list = vec![]; 
@@ -78,7 +71,7 @@ pub fn get_controllers () -> Result<[Controller; 3], std::io::Error> {
 
                     // add the following tuple to the list
                     list.push(
-                        match String::from_utf8(buffer[(i * 128) + (j * 16) + 1 .. (i * 128) + (j * 16) + 16].to_vec()) {
+                        match String::from_utf8(buffer[(j * 16) + 1 .. (j * 16) + 16].to_vec()) {
                             Ok(key) => key.trim_matches(char::from(0)).to_string(),
                             Err(_) => "!!invalid key!!".to_string()
                         }
@@ -89,14 +82,16 @@ pub fn get_controllers () -> Result<[Controller; 3], std::io::Error> {
                     Some(controller) => controller,
                     None => [Controller::default, Controller::default_versus1, Controller::default_versus2][i]()
                 });
-            }
+            },
 
-            // return the result
-            Ok(controllers.try_into().unwrap_or_else(|_| panic!("config_tracker -- Error converting Controller vec to array")))
-        },
+            // error loading binary file
+            Err(e) => return Err(e)
+        }
 
-        // error loading binary file
-        Err(e) => Err(e)
     }
+
+    // return the result
+    Ok(controllers.try_into().unwrap_or_else(|_| panic!("config_tracker -- Error converting Controller vec to array")))
+
 }
 

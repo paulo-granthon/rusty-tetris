@@ -68,6 +68,7 @@ impl Settings {
                 None
             },
             SubState::Main => {
+                println!("saving config");
                 let _ = save_controllers(&mut self.controllers);
                 Some(GameEvent::PreviousState)
             }
