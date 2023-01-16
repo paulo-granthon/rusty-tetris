@@ -1,4 +1,4 @@
-use crate::{RustyEngine, GameEvent, InputHandler, Controller, config_tracker::*, InputID};
+use crate::{RustyEngine, GameEvent, InputHandler, Controller, config_tracker::*, InputID, rt::render::render_popup_window};
 
 enum Action {
     Set,
@@ -94,17 +94,16 @@ impl RustyEngine for Settings {
     }
 
     fn render(&mut self, api: &mut dyn doryen_rs::DoryenApi) {
-        // use crate::{RTColor, Align, render_rect, render_button, CONSOLE_HEIGHT, CONSOLE_WIDTH};
-        use crate::{RTColor, Align, render_rect, render_button, CONSOLE_WIDTH};
+        use crate::{RTColor, Align, render_rect, render_button, CONSOLE_HEIGHT, CONSOLE_WIDTH};
         
         // get the console
         let con = api.con();
 
         let white = RTColor::White;
         let red = RTColor::Red;
-        // let dark_gray = RTColor::DarkGrey.u8();
+        let dark_gray = RTColor::DarkGrey.u8();
         let darker_gray = RTColor::DarkerGrey.u8();
-        // let black = RTColor::Black;
+        let black = RTColor::Black;
 
         // get the current controller
         let controller = &self.controllers[self.cursor_pos.1];
@@ -136,6 +135,19 @@ impl RustyEngine for Settings {
 
         // renders the Esc button 
         render_button(con, 0, 0, 7, 5, "Esc", red, Some(darker_gray), None, (Align::Start, Align::Start));
+
+        match self.state { 
+            SubState::KeySelect => {
+                let half_con_width = CONSOLE_WIDTH as i32 / 2;
+                let half_con_height = CONSOLE_HEIGHT as i32 / 2;
+        
+                render_popup_window(con, half_con_width, half_con_height, 48, 24, Align::center2(), Some(dark_gray), Some(black.u8()), Some(0));
+
+                con.print(half_con_width, half_con_height - 2, InputID::from_index(self.cursor_pos.0).as_str(), doryen_rs::TextAlign::Center, Some(white.u8()), None);
+                con.print(half_con_width, half_con_height, "Press (almost) any key to rebind", doryen_rs::TextAlign::Center, Some(white.u8()), None);
+            },
+            _=> {}
+        }
 
 
     }

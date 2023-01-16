@@ -18,7 +18,7 @@ fn to_bytes (input_id: u8, key: String) -> Result<[u8; 16], std::io::Error> {
 pub fn save_controllers (controllers: &mut [Controller; 3]) -> Result<(), std::io::Error> {
 
     // clear binary while catching error
-    if let Err(err) = clear_binary(CONFIG_PATH) { println!("clear binary"); return Err(err) }
+    if let Err(err) = clear_binary(CONFIG_PATH) { return Err(err) }
 
     // loop through the controllers
     for i in 0..controllers.len() {
