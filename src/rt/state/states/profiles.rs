@@ -191,8 +191,8 @@ impl RustyEngine for Profiles {
 
         let white = RTColor::White;
         let red = RTColor::Red;
-        let dark_gray = RTColor::DarkGrey.u8();
-        let darker_gray = RTColor::DarkerGrey.u8();
+        let dark_gray = RTColor::DarkGray.u8();
+        let darker_gray = RTColor::DarkerGray.u8();
         let black = RTColor::Black;
 
         // scrollbar

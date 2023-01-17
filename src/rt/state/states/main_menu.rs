@@ -127,7 +127,7 @@ impl RustyEngine for MainMenu {
 
         // reference the following colors 
         let white_colr = RTColor::White.u8();
-        let fore_color = RTColor::DarkerGrey.u8();
+        let fore_color = RTColor::DarkerGray.u8();
         let black_colr = RTColor::Black.u8();
 
         // calulate the visual height of the menu

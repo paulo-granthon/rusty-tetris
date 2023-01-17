@@ -15,11 +15,32 @@ pub const PLAYFIELD_HEIGHT: u8 = 24;
 // defines the size of each block of a Tetromino
 pub const BLOCK_SCALE: u8 = 2;
 
+// struct that handles the functionallities of the pause menu
+pub struct PauseMenu {
+    pub cursor: usize,
+}
+pub enum PauseMenuAction { Exit, Continue }
+impl PauseMenu {
+    fn new () -> Self { Self { cursor: 1 } }
+    pub fn move_cursor (&mut self, dir: i8) {
+        println!("moving cursor | current: {} | dir: {}", self.cursor, dir);
+        let ci8 = self.cursor as i8;
+        self.cursor = ((((ci8 + dir) % 2) + 2) % 2) as usize;
+        println!("new cursor: {}", self.cursor)
+    }
+    pub fn action (&self) -> PauseMenuAction {
+        match self.cursor {
+            0 => PauseMenuAction::Exit,
+            _ => PauseMenuAction::Continue
+        }
+    }
+}
+
 // enum that defines the current state of a RustyTetris run
 pub enum RunState {
     Start,
     Playing,
-    Paused,
+    Paused(PauseMenu),
     Over,
 }
 
@@ -101,8 +122,8 @@ impl Game {
     // pauses / resumes the game
     pub fn pause (&mut self) {
         match self.run_state {
-            RunState::Playing => self.set_state(RunState::Paused),
-            RunState::Paused => self.set_state(RunState::Playing),
+            RunState::Playing => self.set_state(RunState::Paused(PauseMenu::new())),
+            RunState::Paused(_) => self.set_state(RunState::Playing),
             _=> {}
         }
     }
@@ -133,59 +154,51 @@ impl Game {
         self.next();
     }
     
-    // define the next Tetromino of the match
+    // jumps to the next Tetromino on the bag
     pub fn next (&mut self) {
+
+        // get the next Tetromino on the bag
         let t = self.bag_next();
-        // let t = Tetromino { grid: vec![vec![true;1];1], color: RTColor::Green };
+
+        // get the size of the Tetromino's grid (3x3 or 4x4)
         let size = (t.grid[0].len() as u32, t.grid.len() as u32);
+
+        // set it as the new current Tetromino
         self.cur_tetromino = Some(t);
+
+        // initialize console for the Tetromino
         self.cur_con = Some(Console::new(size.0 * BLOCK_SCALE as u32, size.1 * BLOCK_SCALE as u32));
+
+        // reset position
         self.cur_pos = ((PLAYFIELD_WIDTH as i8 / 2) - (size.0 as i8 / 2), 0);
         
+        // initialize console for the next Tetromino after this one
         self.next_con = Some(Console::new(6 * BLOCK_SCALE as u32, 8 * BLOCK_SCALE as u32));
 
+        // check if game over
         if get_rot_correction(&self.cur_tetromino.clone().unwrap().grid, self.cur_pos, &self.playfield) != 0 {
-            // use crate::{write_binary, load_binary};
-            // write_binary("scores/run", self.score.to_be_bytes());
-
-            // use crate::rt::serialization::score_tracker::*;
-            // save_score(1, 2, self.score);
-            // update_best(1, 2, self.score);
-            // track_score(1, 0, self.score);
-            // let scores = (load_history(None, None).unwrap(), load_best(None, None).unwrap());
-            // println!("history:\t{:?}", scores.0);
-            // println!("best:\t{:?}", scores.1);
-            // for score in scores.0 {
-            //     println!("history: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
-            // }
-            // for score in scores.1 {
-            //     println!("best: player: {}, gamemode: {}, score: {}", score.0, score.1, score.2);
-            // }
-
-            // match load_binary("data/scores/run") {
-            //     Ok(stream) => {
-            //         println!("Scores:");
-            //         for i in 4..stream.len() / 4 {
-            //             let mut bytes = [0; 4];
-            //             for j in 0..4 {
-            //                 bytes[j] = stream[(i * 4) + j];
-            //             }
-            //             let score = i32::from_be_bytes(bytes);
-            //             println!("[{}] {}", i, score);
-            //         }
-            //     },
-            //     _=> {}
-            // }
             self.set_state(RunState::Over)
         };
     }
 
+    /// returns the number of moves until given Tetromino reaches the bottom
     pub fn get_skip_steps (&self, t: &Tetromino) -> i8 {
+
+        // initialize a count for the steps
         let mut steps = 0;
+
+        // repeat until
         loop {
+
+            // simulate the move corresponding to the current step count
             let simulated = simulate_move_y(&t, (self.cur_pos.0, self.cur_pos.1 + steps), (0, 1), &self.playfield);
+
             // println!("{} steps | simulated: {:?}", steps, simulated);
+
+            // if some correction is returned from the simulation, this is the maximum number of moves for the Tetromino
             if simulated.2 != 0 || simulated.3 != 0 { break steps }
+
+            // otherwise, increase the count
             steps += 1;
         }
     }

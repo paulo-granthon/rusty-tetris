@@ -1,4 +1,4 @@
-use crate::{InputHandler, KeyMap, GameEvent, InputID, Game, DEBUG_MOVEMENT};
+use crate::{InputHandler, KeyMap, GameEvent, InputID, Game, DEBUG_MOVEMENT, rt::state::{RunState, PauseMenuAction}};
 
 // implement the InputHandler trait on RustyTetris
 impl InputHandler for Game {
@@ -10,11 +10,13 @@ impl InputHandler for Game {
 
             // KeyMap::new("Backspace",                "priority", None ),
             KeyMap::new(self.controller.get(InputID::Pause),   "priority", None ),
-            
+            KeyMap::new(self.controller.get(InputID::Left),    "priority", Some(6) ),
+            KeyMap::new(self.controller.get(InputID::Right),   "priority", Some(6) ),
+
             KeyMap::new(self.controller.get(InputID::Up),       "game", Some(0) ),
             KeyMap::new(self.controller.get(InputID::Down),     "game", Some(0) ),
-            KeyMap::new(self.controller.get(InputID::Left),     "game", Some(6) ),
-            KeyMap::new(self.controller.get(InputID::Right),    "game", Some(6) ),
+            // KeyMap::new(self.controller.get(InputID::Left),     "game", Some(6) ),
+            // KeyMap::new(self.controller.get(InputID::Right),    "game", Some(6) ),
             KeyMap::new(self.controller.get(InputID::RotateL),  "game", Some(8) ),
             KeyMap::new(self.controller.get(InputID::RotateR),  "game", Some(8) ),
             KeyMap::new(self.controller.get(InputID::Skip),     "game", None ),
@@ -42,12 +44,23 @@ impl InputHandler for Game {
 
                 // priority (checked before paused)
                 else if key == "Backspace"                { self.reset() }
-                else if key == self.controller.get(InputID::Pause) || key == "Escape" { 
-                    if self.inputmap[index].category == "over".to_owned() { return Some(GameEvent::GameOver); }
-                    else { self.pause(); }
+
+                // Pause
+                else if key == self.controller.get(InputID::Pause) { 
+                    match &mut self.run_state {
+                        RunState::Paused(menu) => match menu.action() {
+                            PauseMenuAction::Continue => { self.pause(); return None },
+                            PauseMenuAction::Exit => { self.pause(); self.set_state(RunState::Over); return None }
+                        },
+                        _=> {
+                            if self.inputmap[index].category == "over".to_owned() { return Some(GameEvent::GameOver); }
+                            else { self.pause(); }        
+                        }
+                    }
                 }
 
                 // default game inputs (checked if not paused)
+                // UP
                 else if key == self.controller.get(InputID::Up) { 
                     match DEBUG_MOVEMENT {
                         true => { self.intent_y(-1); self.move_y() },
@@ -61,15 +74,21 @@ impl InputHandler for Game {
                     }
                 }
                 else if key == self.controller.get(InputID::Left) { 
-                    match DEBUG_MOVEMENT {
-                        true => { self.intent_x(-1); self.move_x() },
-                        false => self.intent_x(-1)
+                    match &mut self.run_state {
+                        RunState::Paused(menu) => menu.move_cursor(-1),
+                        _=> match DEBUG_MOVEMENT {
+                            true => { self.intent_x(-1); self.move_x() },
+                            false => self.intent_x(-1)
+                        }
                     }
                 }
                 else if key == self.controller.get(InputID::Right) { 
-                    match DEBUG_MOVEMENT {
-                        true => { self.intent_x(1); self.move_x() },
-                        false => self.intent_x(1)
+                    match &mut self.run_state {
+                        RunState::Paused(menu) => menu.move_cursor(1),
+                        _=> match DEBUG_MOVEMENT {
+                            true => { self.intent_x(1); self.move_x() },
+                            false => self.intent_x(1)
+                        }
                     }
                 }
                 else if key == self.controller.get(InputID::RotateL)    { self.rotate(true) }

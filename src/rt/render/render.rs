@@ -53,7 +53,7 @@ pub fn render_playfield<'a, const W: usize, const H: usize> (playfield_con: Opti
                                 color.u8(), 
                                 scale,
                                 1, 1,
-                                Some(RTColor::Grey.u8())
+                                Some(RTColor::Gray.u8())
                             ),
                             None => continue
                         };
@@ -160,12 +160,18 @@ pub fn render_popup_window (
 
 }
 
-pub fn render_paused_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
-    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.u8()), Some(RTColor::Black.u8()), Some('/' as u16));
-    con.print(x, y, "Paused", doryen_rs::TextAlign::Center, Some(RTColor::White.u8()), None);
+pub fn render_paused_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32, menu: &crate::PauseMenu) {
+    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::DarkerGray.u8()), Some(RTColor::Black.u8()), Some('/' as u16));
+    con.print(x, y-3, "Paused", doryen_rs::TextAlign::Center, Some(RTColor::White.u8()), None);
+    let (exit_fore, exit_back, cont_fore, cont_back) = match menu.cursor {
+        0 => (Some(RTColor::Red.u8()), Some(RTColor::White.u8()), Some(RTColor::DarkGray.u8()), None),
+        _ => (Some(RTColor::DarkGray.u8()), None, Some(RTColor::Blue.u8()), Some(RTColor::White.u8()))
+    };
+    con.print(x - 8, y, "Exit", doryen_rs::TextAlign::Center, exit_fore, exit_back);
+    con.print(x + 8, y, "Continue", doryen_rs::TextAlign::Center, cont_fore, cont_back);
 }
 
 pub fn render_game_over_popup (con: &mut Console, x: i32, y: i32, w: u32, h: u32) {
-    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Grey.u8()), Some(RTColor::Black.u8()), Some(' ' as u16));
+    render_popup_window(con, x, y, w, h, Align::center2(), Some(RTColor::Gray.u8()), Some(RTColor::Black.u8()), Some(' ' as u16));
     con.print(x, y, "Game Over", doryen_rs::TextAlign::Center, Some(RTColor::White.u8()), None);
 }

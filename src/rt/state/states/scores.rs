@@ -120,8 +120,8 @@ impl RustyEngine for Scores {
         let blue = RTColor::Blue;
         let red = RTColor::Red;
         // let gray = RTColor::Grey.u8();
-        let dark_gray = RTColor::DarkGrey.u8();
-        let darker_gray = RTColor::DarkerGrey.u8();
+        let dark_gray = RTColor::DarkGray.u8();
+        let darker_gray = RTColor::DarkerGray.u8();
         let black = RTColor::Black.u8();
 
         // render lists bg
@@ -171,8 +171,8 @@ impl RustyEngine for Scores {
         render_button(con, 0, 0, 7, 5, "Esc", red, Some(darker_gray), None, (Align::Start, Align::Start));
 
         // render labels
-        render_button(con, 0,  5, 40, 5, "#[cyan]Best Scores", RTColor::Grey, Some(darker_gray), None, (Align::Start, Align::Start));
-        render_button(con, 40, 5, 37, 5, "#[magenta]History", RTColor::Grey, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 0,  5, 40, 5, "#[cyan]Best Scores", RTColor::Gray, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 40, 5, 37, 5, "#[magenta]History", RTColor::Gray, Some(darker_gray), None, (Align::Start, Align::Start));
 
     }
 }

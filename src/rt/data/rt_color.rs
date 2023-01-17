@@ -12,9 +12,9 @@ pub enum RTColor {
     Magenta,
     Cyan,
     Orange,
-    Grey,
-    DarkGrey,
-    DarkerGrey,
+    Gray,
+    DarkGray,
+    DarkerGray,
 }
 
 use std::slice::Iter;
@@ -35,9 +35,9 @@ impl RTColor {
             Magenta     => "magenta",
             Cyan        => "cyan",
             Orange      => "orange",
-            Grey        => "grey",
-            DarkGrey    => "dark_grey",
-            DarkerGrey  => "darker_grey",
+            Gray        => "grey",
+            DarkGray    => "dark_grey",
+            DarkerGray  => "darker_grey",
         }
     }
     pub fn u8 (&self) -> (u8, u8, u8, u8) {
@@ -51,9 +51,9 @@ impl RTColor {
             Magenta     => (255,   92,     255,    255),
             Cyan        => (92,    255,    255,    255),
             Orange      => (255,   92,     0,      255),
-            Grey        => (127,   127,    127,    255),
-            DarkGrey    => (92,    92,     92,     255),
-            DarkerGrey  => (46,    46,     46,     255),
+            Gray        => (127,   127,    127,    255),
+            DarkGray    => (92,    92,     92,     255),
+            DarkerGray  => (46,    46,     46,     255),
         }
     }
 }

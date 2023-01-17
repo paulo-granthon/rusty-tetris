@@ -16,7 +16,7 @@ impl RenderEngine for Game {
 
     fn rt_render (&mut self, con: &mut Console) {
 
-        let paused = match self.run_state { crate::RunState::Paused => true, _=> false };
+        let paused = match self.run_state { crate::RunState::Paused(_) => true, _=> false };
 
         let side =  if self.player == 0 {0} else { ((self.player as i32 - 1) * 2) - 1 };
 
@@ -29,7 +29,7 @@ impl RenderEngine for Game {
         let half_con_width = CONSOLE_WIDTH as i32 / 2;
         let half_con_height = CONSOLE_HEIGHT as i32 / 2;
 
-        con.back( half_con_width + player_x_offset, 0, RTColor::Orange.u8());
+        // con.back( half_con_width + player_x_offset, 0, RTColor::Orange.u8());
 
         match render_playfield(self.playfield_con.as_mut(), &self.playfield, BLOCK_SCALE as i32, !paused) {
             Some(pfcon) => {
@@ -51,9 +51,9 @@ impl RenderEngine for Game {
         // render the score
         render_score(con, half_con_width + player_x_offset, half_pf_height, self.score);
 
-        if match self.run_state {
-            RunState::Paused => {
-                render_paused_popup(con, half_con_width + player_x_offset, half_con_height, 24, 7);
+        if match &self.run_state {
+            RunState::Paused(menu) => {
+                render_paused_popup(con, half_con_width + player_x_offset, half_con_height, 32, 7, menu);
                 true
             },
             RunState::Over => {
@@ -138,8 +138,8 @@ impl RenderEngine for Game {
             None => { println!("render -- bag_peek_next returned None")}
         }
 
-        con.back(28, 10, (127, 127, 0, 127));
-        con.back(50, 10, (127, 127, 0, 127));
+        // con.back(28, 10, (127, 127, 0, 127));
+        // con.back(50, 10, (127, 127, 0, 127));
 
         
     }

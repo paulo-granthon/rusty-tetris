@@ -49,7 +49,7 @@ impl RustyEngine for Game {
             },
 
             // handles inputs specific to the state and maybe return GameEvent
-            RunState::Paused => {
+            RunState::Paused(_) => {
                 self.handle_input(input, "priority");
                 // paused should open a menu with the option to quit the run, that would return GameEvent
             },
