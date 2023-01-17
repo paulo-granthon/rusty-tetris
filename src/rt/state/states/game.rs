@@ -189,19 +189,46 @@ impl Game {
 
     // skips to the next tetromino, finishing the trajectory of the current
     pub fn skip (&mut self) {
+
+        // initialize a bool to define if the Game instance should set it's RunState to Playing from RunState::Start 
         let mut start_run = false;
+
+        // match the current Tetromino
         match &self.cur_tetromino {
-            None => {
-                println!("RustyTetris.skip() -- NO CURRENT TETROMINO (XD????)")
-            },
+
+            // no current Tetromino
+            None => { println!("RustyTetris.skip() -- NO CURRENT TETROMINO (XD????)")},
+
+            // Some current Tetromino 
             Some (t) => {
+
+                // match the current instance RunState
                 match self.run_state {
+
+                    // Start the game
                     RunState::Start => start_run = true,
                     _=> {}
-                }        
+                }
+
+                // get the number of steps to be skipped
                 let steps = self.get_skip_steps(&t);
-                self.move_cur((0, steps));
-                if steps > 0 { self.reset_timer("move_y", Some("game")); }
+
+                // if Tetromino is already at the bottom
+                if steps == 0 {
+
+                    // end the turn, checking for row clears and triggering next()
+                    self.end_turn();
+                }
+
+                // otherwise, skip normally
+                else {
+
+                    // move the current Tetromino by that many steps
+                    self.move_cur((0, steps));
+
+                    // reset the verification delay for row clears etc
+                    self.reset_timer("move_y", Some("game"));
+                }
             }
         }
         if start_run { self.set_state(RunState::Playing) }
@@ -327,8 +354,10 @@ impl Game {
 
         self.intent_y(if DEBUG_MOVEMENT { RESET_MOVE_INTENT_MANUAL.1 } else { RESET_MOVE_INTENT_AUTO.1 });
         
-        if result {return};
-        
+        if !result { self.end_turn() };
+    }
+
+    fn end_turn(&mut self) {
         // add the Tetromino the the playfield
         self.add_to_playfield();
 
