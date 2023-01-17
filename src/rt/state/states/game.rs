@@ -220,13 +220,32 @@ impl Game {
                 let rotated = t.get_rotated(clockwise).to_owned();
 
                 // get the correction value 
-                let correction = get_rot_correction(&rotated, self.cur_pos, &self.playfield);
+                // let correction = get_rot_correction(&rotated, self.cur_pos, &self.playfield);
+
+                let srs = srs_correction(t.id, t.rotation, if clockwise { 1 } else { -1 }, &rotated, self.cur_pos, &self.playfield);
+
+                match srs {
+                    Some((x, y)) => {
+                        println!("Some({}, {})", x, y);
+
+                        // replace the tetromino's grid
+                        t.set_grid(rotated);
+
+                        // move the tetromino
+                        self.cur_pos.0 += x; self.cur_pos.1 += y;
+                        // self._move_y(y);
+
+                    },
+                    _=> {
+                        println!("None")
+                    }
+                }
 
                 // replace the tetromino's grid
-                t.set_grid(rotated);
+                // t.set_grid(rotated);
 
                 // if correction is not none, move the tetromino
-                if correction != 0 { self._move_x(correction); }
+                // if correction != 0 { self._move_x(correction); }
         
             },
             

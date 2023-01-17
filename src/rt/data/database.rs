@@ -27,37 +27,37 @@ impl TetrominoID {
 
         // returns a Tetromino corresponding to the enum
         match self {
-            I => Tetromino::from_array([
+            I => Tetromino::from_array(I, [
                 [false, false, false, false],
                 [true,  true,  true,  true],
                 [false, false, false, false],
                 [false, false, false, false],
             ], Cyan),
-            J => Tetromino::from_array([
+            J => Tetromino::from_array(J, [
                 [false, false, false],
                 [true,  true,  true ],
                 [false, false, true ],
             ], Blue),
-            L => Tetromino::from_array([
+            L => Tetromino::from_array(L, [
                 [false, false, true ],
                 [true,  true,  true ],
                 [false, false, false],
             ], Orange),
-            O => Tetromino::from_array([
+            O => Tetromino::from_array(O, [
                 [true, true],
                 [true, true],
             ], Yellow),
-            S => Tetromino::from_array([
+            S => Tetromino::from_array(S, [
                 [false, true,  false],
                 [false, true,  true ],
                 [false, false, true ],
             ], Green),
-            Z => Tetromino::from_array([
+            Z => Tetromino::from_array(Z, [
                 [false, false, true ],
                 [false, true,  true ],
                 [false, true,  false],
             ], Magenta),  
-            T => Tetromino::from_array([
+            T => Tetromino::from_array(T, [
                 [false, true, false],
                 [true,  true, false],
                 [false, true, false],

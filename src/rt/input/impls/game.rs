@@ -1,4 +1,4 @@
-use crate::{InputHandler, KeyMap, GameEvent, InputID, Game};
+use crate::{InputHandler, KeyMap, GameEvent, InputID, Game, DEBUG_MOVEMENT};
 
 // implement the InputHandler trait on RustyTetris
 impl InputHandler for Game {
@@ -48,10 +48,30 @@ impl InputHandler for Game {
                 }
 
                 // default game inputs (checked if not paused)
-                else if key == self.controller.get(InputID::Up)         { self.intent_y(2) }
-                else if key == self.controller.get(InputID::Down)       { self.intent_y(16) }
-                else if key == self.controller.get(InputID::Left)       { self.intent_x(-1) }
-                else if key == self.controller.get(InputID::Right)      { self.intent_x(1) }
+                else if key == self.controller.get(InputID::Up) { 
+                    match DEBUG_MOVEMENT {
+                        true => { self.intent_y(-1); self.move_y() },
+                        false => self.intent_y(2)
+                    }
+                }
+                else if key == self.controller.get(InputID::Down) { 
+                    match DEBUG_MOVEMENT {
+                        true => { self.intent_y(1); self.move_y() },
+                        false => self.intent_y(16)
+                    }
+                }
+                else if key == self.controller.get(InputID::Left) { 
+                    match DEBUG_MOVEMENT {
+                        true => { self.intent_x(-1); self.move_x() },
+                        false => self.intent_x(-1)
+                    }
+                }
+                else if key == self.controller.get(InputID::Right) { 
+                    match DEBUG_MOVEMENT {
+                        true => { self.intent_x(1); self.move_x() },
+                        false => self.intent_x(1)
+                    }
+                }
                 else if key == self.controller.get(InputID::RotateL)    { self.rotate(true) }
                 else if key == self.controller.get(InputID::RotateR)    { self.rotate(false) }
                 else if key == self.controller.get(InputID::Skip)       { self.skip() }
