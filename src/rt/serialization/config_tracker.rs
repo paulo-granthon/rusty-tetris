@@ -2,6 +2,10 @@ use crate::{ clear_binary, append_binary, load_binary };
 use crate::Controller;
 
 const CONFIG_PATH: &str = "data/config";
+const CONTROLLERS: [&str; 3] = ["default", "versus1", "versus2"];
+
+// toggle for runtime debbuging
+const DEBUG: bool = false;
 
 /// converts given index InputID and corresponding key str to a singgle array of bytes
 fn to_bytes (input_id: u8, key: String) -> Result<[u8; 16], std::io::Error> {
@@ -18,7 +22,9 @@ fn to_bytes (input_id: u8, key: String) -> Result<[u8; 16], std::io::Error> {
 pub fn save_controllers (controllers: &mut [Controller; 3]) -> Result<(), std::io::Error> {
 
     // clear binary while catching error
-    if let Err(err) = clear_binary(CONFIG_PATH) { return Err(err) }
+    for controller in CONTROLLERS {
+        if let Err(err) = clear_binary(format!("{}/{}", CONFIG_PATH, controller).as_str()) { return Err(err) }
+    }
 
     // loop through the controllers
     for i in 0..controllers.len() {
@@ -35,7 +41,7 @@ pub fn save_controllers (controllers: &mut [Controller; 3]) -> Result<(), std::i
                 // Ok: append to the file and catch if error
                 Ok(bytes) => {
                     if let Err(err) = append_binary(
-                        format!("{}/{}", CONFIG_PATH, ["default", "versus1", "versus2"][i])
+                        format!("{}/{}", CONFIG_PATH, CONTROLLERS[i])
                         .as_str(), bytes) { return Err(err) }
                 },
                 // Error: return the error
@@ -56,38 +62,11 @@ pub fn get_controllers () -> Result<[Controller; 3], std::io::Error> {
 
     // loop through the loaded buffer with increments of 128 u8 -- controller
     for i in 0..3 {
-            
-        // loads the binary and match result
-        match load_binary(format!("{}/{}", CONFIG_PATH, ["default", "versus1", "versus2"][i]).as_str()) {
 
-            // file is loaded successfully
-            Ok(buffer) => {
-
-                // create a vec of tuple for player, gamemode and score
-                let mut list = vec![]; 
-
-                // loop through the keys
-                for j in 0..buffer.len() / 16 {
-
-                    // add the following tuple to the list
-                    list.push(
-                        match String::from_utf8(buffer[(j * 16) + 1 .. (j * 16) + 16].to_vec()) {
-                            Ok(key) => key.trim_matches(char::from(0)).to_string(),
-                            Err(_) => "!!invalid key!!".to_string()
-                        }
-                    )
-                }
-
-                controllers.push(match Controller::from_vec(list) {
-                    Some(controller) => controller,
-                    None => [Controller::default, Controller::default_versus1, Controller::default_versus2][i]()
-                });
-            },
-
-            // error loading binary file
-            Err(e) => return Err(e)
+        match get_controller(i) {
+            Ok(controller) => controllers.push(controller),
+            Err(err) => return Err(err)
         }
-
     }
 
     // return the result
@@ -95,3 +74,47 @@ pub fn get_controllers () -> Result<[Controller; 3], std::io::Error> {
 
 }
 
+pub fn get_controller (player: usize) -> Result<Controller, std::io::Error> {
+
+    assert!(player <= 2, "config_tracker::get_controller({}) -- Error: expected one of (0, 1, 2) player values but got {} instead!", player, player);
+
+    // loads the binary and match result
+    match load_binary(format!("{}/{}", CONFIG_PATH, CONTROLLERS[player]).as_str()) {
+
+        // file is loaded successfully
+        Ok(buffer) => {
+
+            if DEBUG { println!("config_tracker::get_controller() -- Buffer read successfull for {}", CONTROLLERS[player]); }
+
+            // create a vec of tuple for player, gamemode and score
+            let mut list = vec![]; 
+
+            // loop through the keys
+            for j in 0..buffer.len() / 16 {
+
+                // add the following tuple to the list
+                list.push(
+                    match String::from_utf8(buffer[(j * 16) + 1 .. (j * 16) + 16].to_vec()) {
+                        Ok(key) => key.trim_matches(char::from(0)).to_string(),
+                        Err(_) => "!!invalid key!!".to_string()
+                    }
+                )
+            }
+
+            Ok(match Controller::from_vec(list) {
+                Some(controller) => {
+                    if DEBUG { println!("config_tracker::get_controller() -- Controller loaded successfully: {:?}", controller); }
+                    controller
+                },
+                None => {
+                    let controller = [Controller::default, Controller::default_versus1, Controller::default_versus2][player]();
+                    if DEBUG { println!("config_tracker::get_controller() -- No controller found, loading default: {:?}", controller); }
+                    controller
+                }
+            })
+        },
+
+        // error loading binary file
+        Err(e) => return Err(e)
+    }
+}

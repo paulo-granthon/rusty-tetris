@@ -1,5 +1,5 @@
 pub enum InputID {
-    Action,
+    Pause,
     Left,
     Right,
     Down,
@@ -14,7 +14,7 @@ impl InputID {
     // returns a &str correspondingg to this InputID
     pub fn as_str(&self) -> &str {
         match self {
-            InputID::Action => "Action",
+            InputID::Pause => "Pause",
             InputID::Left => "Left",
             InputID::Right => "Right",
             InputID::Down => "Down",
@@ -28,7 +28,7 @@ impl InputID {
     // returns a matching InputID for the given index
     pub fn from_index (index: usize) -> Self {
         match index {
-            0 => Self::Action,
+            0 => Self::Pause,
             1 => Self::Left,
             2 => Self::Right,
             3 => Self::Down,
@@ -69,7 +69,10 @@ impl Controller {
     ) -> Self { Self { action, left, right, down, up, rotate_l, rotate_r, skip, }}
 
     pub fn from_vec (list: Vec<String>) -> Option<Self> {
-        if list.len() != 8 { return None }
+        if list.len() != 8 { 
+            println!("Controller::from_vec() -- Error: expected vec of length == 8 but got {} instead: {:?}", list.len(), list);
+            return None
+        }
         Some(Self {
             action:   list[0].to_owned(),
             left:     list[1].to_owned(),
@@ -117,7 +120,7 @@ impl Controller {
     // matches InputId with associated key
     pub fn get (&self, input: InputID) -> &str {
         match input {
-            InputID::Action => self.action.as_str(),
+            InputID::Pause => self.action.as_str(),
             InputID::Left => self.left.as_str(),
             InputID::Right => self.right.as_str(),
             InputID::Down => self.down.as_str(),

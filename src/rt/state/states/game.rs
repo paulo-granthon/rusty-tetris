@@ -1,4 +1,4 @@
-use crate::{Bag, HasBag, data::*, Controller, InputHandler, RoutineHandler};
+use crate::{Bag, HasBag, data::*, Controller, InputHandler, RoutineHandler, config_tracker};
 extern crate doryen_rs; use doryen_rs::Console;
 
 use crate::DEBUG_MOVEMENT;
@@ -59,17 +59,17 @@ impl Game {
 
     // create a new instance
     pub fn singleplayer () -> Self {
-        Self::new(0)
+        Self::new(0, match config_tracker::get_controller(0) { Ok(c) => Some(c), Err(_) => panic!("states/game/Game::singleplayer() -- Error: invalid controller")})
     }
 
     // create a new instance for Some player
     pub fn versus (player: usize) -> Self {
         println!("new rusty tetris instance for player {}", player);
-        Self::new(player)
+        Self::new(player, match config_tracker::get_controller(player) { Ok(c) => Some(c), Err(_) => panic!("states/game/Game::versus({}) -- Error: invalid controller", player)})
     }
     
     // create a new instance with defined player
-    pub fn new (player: usize) -> Self {
+    pub fn new (player: usize, controller: Option<Controller>) -> Self {
         Self {
             playfield: Self::create_playfield(),
             playfield_con: Some(Console::new((PLAYFIELD_WIDTH * BLOCK_SCALE) as u32 + 2, (PLAYFIELD_HEIGHT * BLOCK_SCALE) as u32 + 2)),
@@ -85,7 +85,10 @@ impl Game {
             mouse_pos: (0.0,0.0),
             inputmap: vec![],
             routines: vec![],
-            controller: match player { 0 => Controller::default(), _=> Controller::default_versus(player - 1) },
+            controller: match controller {
+                Some(c) => c,
+                None => match player { 0 => Controller::default(), _=> Controller::default_versus(player - 1) }
+            },
             player,
         }
     }
@@ -246,26 +249,25 @@ impl Game {
                 // get the rotated grid
                 let rotated = t.get_rotated(clockwise).to_owned();
 
-                // get the correction value 
-                // let correction = get_rot_correction(&rotated, self.cur_pos, &self.playfield);
-
+                // get the result of the srs wall_kick check
                 let srs = srs_correction(t.id, t.rotation, if clockwise { 1 } else { -1 }, &rotated, self.cur_pos, &self.playfield);
 
+                // match Some / None
                 match srs {
+
+                    // Some position returned, allow rotation and update Tetromino's position
                     Some((x, y)) => {
-                        println!("Some({}, {})", x, y);
 
                         // replace the tetromino's grid
                         t.set_grid(rotated);
 
                         // move the tetromino
                         self.cur_pos.0 += x; self.cur_pos.1 += y;
-                        // self._move_y(y);
 
                     },
-                    _=> {
-                        println!("None")
-                    }
+
+                    // None: impossible rotation
+                    _=> {}
                 }
 
                 // replace the tetromino's grid

@@ -9,7 +9,7 @@ impl InputHandler for Game {
         self.inputmap = vec![
 
             // KeyMap::new("Backspace",                "priority", None ),
-            KeyMap::new(self.controller.get(InputID::Action),   "priority", None ),
+            KeyMap::new(self.controller.get(InputID::Pause),   "priority", None ),
             
             KeyMap::new(self.controller.get(InputID::Up),       "game", Some(0) ),
             KeyMap::new(self.controller.get(InputID::Down),     "game", Some(0) ),
@@ -19,7 +19,7 @@ impl InputHandler for Game {
             KeyMap::new(self.controller.get(InputID::RotateR),  "game", Some(8) ),
             KeyMap::new(self.controller.get(InputID::Skip),     "game", None ),
 
-            KeyMap::new(self.controller.get(InputID::Action),   "over", None ),
+            KeyMap::new(self.controller.get(InputID::Pause),   "over", None ),
 
         ];
 
@@ -42,7 +42,7 @@ impl InputHandler for Game {
 
                 // priority (checked before paused)
                 else if key == "Backspace"                { self.reset() }
-                else if key == "Enter" { 
+                else if key == self.controller.get(InputID::Pause) || key == "Escape" { 
                     if self.inputmap[index].category == "over".to_owned() { return Some(GameEvent::GameOver); }
                     else { self.pause(); }
                 }
