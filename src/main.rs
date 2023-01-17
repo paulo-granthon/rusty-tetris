@@ -80,7 +80,7 @@ fn main() {
         font_path: "terminal_8x8.png".to_owned(),
         vsync: true,
         fullscreen: false,
-        show_cursor: true,
+        show_cursor: false,
         resizable: true,
         intercept_close_request: false,
         max_fps: MAX_FPS,
