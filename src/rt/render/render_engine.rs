@@ -1,4 +1,4 @@
-use doryen_rs::Console;
+use doryen_rs::{Console, TextAlign};
 
 use crate::{Game, RunState, render::*, RTColor};
 
@@ -52,6 +52,10 @@ impl RenderEngine for Game {
         render_score(con, half_con_width + player_x_offset, half_pf_height, self.score);
 
         if match &self.run_state {
+            RunState::Start => {
+                con.print(half_con_width + player_x_offset, half_pf_height, "Press \"Down\", \"Up\' or \"Skip\" to start", TextAlign::Center, Some(RTColor::White.u8()), None);
+                false
+            },
             RunState::Paused(menu) => {
                 render_paused_popup(con, half_con_width + player_x_offset, half_con_height, 32, 7, menu);
                 true
