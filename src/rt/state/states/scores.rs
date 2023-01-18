@@ -174,7 +174,7 @@ impl RustyEngine for Scores {
             con.rectangle(0, 10 + (i as i32 - self.cursor as i32) * 5, 40, 5, Some(white.u8()), None, Some(0));
             con.print(4, 10 + (i as i32 - self.cursor as i32) * 5, format!("{}º", i+1).as_str(), doryen_rs::TextAlign::Right, Some(white.u8()), None);
             con.print(38, 10 + (i as i32 - self.cursor as i32) * 5, ["Singleplayer", "Versus"][record.1 as usize], doryen_rs::TextAlign::Right, Some([RTColor::Cyan, RTColor::Magenta][record.1 as usize].u8()), None);
-            con.print(1, 10 + (i as i32 - self.cursor as i32) * 5 + 2, self.profiles[record.0 as usize].as_str(), doryen_rs::TextAlign::Left, Some(blue.u8()), None);
+            con.print(1, 10 + (i as i32 - self.cursor as i32) * 5 + 2, if record.0 == 0 { "Guest" } else { self.profiles[record.0 as usize - 1].as_str() }, doryen_rs::TextAlign::Left, Some(blue.u8()), None);
             con.print_color(37, 10 + (i as i32 - self.cursor as i32) * 5 + 2, format!("#[green]{}", record.2).as_str(), doryen_rs::TextAlign::Right, None);
         }
 
@@ -189,7 +189,7 @@ impl RustyEngine for Scores {
             con.area(40, 14 + (i as i32 - self.cursor as i32) * 5, 37, 1, None, Some(darker_gray), Some(0));
             con.rectangle(40, 10 + (i as i32 - self.cursor as i32) * 5, 37, 5, Some(white.u8()), None, Some(0));
             con.print(75, 10 + (i as i32 - self.cursor as i32) * 5, ["Singleplayer", "Versus"][record.1 as usize], doryen_rs::TextAlign::Right, Some([RTColor::Cyan, RTColor::Magenta][record.1 as usize].u8()), None);
-            con.print(41, 10 + (i as i32 - self.cursor as i32) * 5 + 2, self.profiles[record.0 as usize].as_str(), doryen_rs::TextAlign::Left, Some(blue.u8()), None);
+            con.print(41, 10 + (i as i32 - self.cursor as i32) * 5 + 2, if record.0 == 0 { "Guest" } else { self.profiles[record.0 as usize - 1].as_str() }, doryen_rs::TextAlign::Left, Some(blue.u8()), None);
             con.print_color(74, 10 + (i as i32 - self.cursor as i32) * 5 + 2, format!("#[green]{}", record.2).as_str(), doryen_rs::TextAlign::Right, None);
         }
         

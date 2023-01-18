@@ -173,6 +173,7 @@ impl RustyEngine for Settings {
 
                 con.print(half_con_width, half_con_height - 2, InputID::from_index(self.cursor).as_str(), doryen_rs::TextAlign::Center, Some(white.u8()), None);
                 con.print(half_con_width, half_con_height, "Press (almost) any key to rebind", doryen_rs::TextAlign::Center, Some(white.u8()), None);
+                con.print(half_con_width, half_con_height + 1, "Press \"Esc\" to cancel", doryen_rs::TextAlign::Center, Some(dark_gray), None);
             },
             _=> {}
         }
