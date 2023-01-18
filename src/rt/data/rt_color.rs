@@ -35,9 +35,9 @@ impl RTColor {
             Magenta     => "magenta",
             Cyan        => "cyan",
             Orange      => "orange",
-            Gray        => "grey",
-            DarkGray    => "dark_grey",
-            DarkerGray  => "darker_grey",
+            Gray        => "gray",
+            DarkGray    => "dark_gray",
+            DarkerGray  => "darker_gray",
         }
     }
     pub fn u8 (&self) -> (u8, u8, u8, u8) {

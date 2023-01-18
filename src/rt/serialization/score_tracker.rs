@@ -23,17 +23,17 @@ fn to_bytes (player_id: u8, game_mode: u8, score: i32) -> [u8; 4] {
 }
 
 // stores the given score on history and recalculates the best scores considering the new entry
-pub fn track_score (player: u8, game_mode: u8, score: i32) {
+pub fn track_score (profile: u8, game_mode: u8, score: i32) {
 
     // save score on history
-    match save_score(player, game_mode, score) {
-        Err(e) => println!("track_score: save_score({}, {}, {}) -- Erro: {}", player, game_mode, score, e),
+    match save_score(profile, game_mode, score) {
+        Err(e) => println!("track_score: save_score({}, {}, {}) -- Erro: {}", profile, game_mode, score, e),
         _=> {}
     }
 
     // update best scores
-    match update_best(player, game_mode, score) {
-        Err(e) => println!("track_score: update_best({}, {}, {}) -- Erro: {}", player, game_mode, score, e),
+    match update_best(profile, game_mode, score) {
+        Err(e) => println!("track_score: update_best({}, {}, {}) -- Erro: {}", profile, game_mode, score, e),
         _=> {}
     }
 }

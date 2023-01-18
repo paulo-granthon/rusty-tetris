@@ -10,10 +10,23 @@ enum Action {
     None,
 }
 
+impl Action {
+    fn text(&self) -> String {
+        match self {
+            Action::Tab(x) => format!("Tab({})", x),
+            Action::Scroll(y) => format!("Scroll({})", y),
+            Action::Exit => "Exit".to_string(),
+            Action::None => "None".to_string(),
+        }
+    }
+}
+
 // defines the state "Scores"
 pub struct Scores {
     scores: Vec<(String, Vec<(u8, u8, i32)>, Vec<(u8, u8, i32)>)>,
-    position: (usize, usize),
+    profiles: Vec<String>,
+    cursor: usize,
+    tab: usize,
     inputmap: Vec::<crate::KeyMap>,
     actions: [[Action; 3]; 3]
 }
@@ -51,7 +64,9 @@ impl Scores {
 
         Self {
             scores,
-            position: (0, 0),
+            profiles,
+            cursor: 0,
+            tab: 0,
             inputmap: vec![],
             actions: [
                 [Action::None,    Action::Scroll(-1), Action::None   ],
@@ -63,6 +78,7 @@ impl Scores {
 
     // idenfifies the action triggered by the input and call the corresponding functionallity
     fn action (&mut self, x: usize, y: usize) -> Option<GameEvent> {
+        println!("action: {}", self.actions[y][x].text());
         match self.actions[y][x] {
             Action::Tab(dir)    => self.tab(dir),
             Action::Scroll(dir) => self.scroll(dir as i32),
@@ -73,18 +89,18 @@ impl Scores {
 
     // switches between players
     fn tab (&mut self, dir: i8) -> Option<GameEvent> {
-        let new = ((self.position.0 as i8 + dir) + self.scores.len() as i8) as usize % self.scores.len();
-        if new != self.position.0 {
-            self.position.0 = new;
-            self.position.1 = 0;
+        let new = ((self.tab as i8 + dir) + self.scores.len() as i8) as usize % self.scores.len();
+        if new != self.tab {
+            self.tab = new;
+            self.cursor = 0;
         }
         None
     }
 
     // scrolls the contents of the list 
     fn scroll (&mut self, dir: i32) -> Option<GameEvent> {
-        let len = (self.scores[self.position.0].0.len().max(self.scores[self.position.0].1.len()) as i32).max(1);
-        self.position.1 = (self.position.1 as i32 + dir - 14).max(0).min(len) as usize;
+        let len = (self.scores[self.tab].0.len().max(self.scores[self.tab].1.len()) as i32).max(1);
+        self.cursor = (self.cursor as i32 + dir).max(0).min(len - 14) as usize;
         None
     }
 
@@ -131,41 +147,54 @@ impl RustyEngine for Scores {
         // render scrollbar
         render_rect(con, CONSOLE_WIDTH as i32, 8, 3, CONSOLE_HEIGHT - 11, Some(('|', darker_gray)), Some(black), (Align::End, Align::Start));
         if self.scores.len() > 0 {
-            let max_list_len = self.scores[self.position.0].0.len().max(self.scores[self.position.0].1.len()) as i32;
+            let max_list_len = self.scores[self.tab].0.len().max(self.scores[self.tab].1.len()) as i32;
             let scrollbar_height = (CONSOLE_HEIGHT as i32 - 11 - (max_list_len - 14)).max(1) as u32;
-                render_rect(con, CONSOLE_WIDTH as i32, 8 + self.position.1 as i32, 3, scrollbar_height, Some((' ', darker_gray)), Some(dark_gray), (Align::End, Align::Start));
+                render_rect(con, CONSOLE_WIDTH as i32, 8 + self.cursor as i32, 3, scrollbar_height, Some((' ', darker_gray)), Some(dark_gray), (Align::End, Align::Start));
         }
         
+        // backgrounds
         render_rect(con, CONSOLE_WIDTH as i32, 5, 3, 3, Some(('-', darker_gray)), Some(dark_gray), (Align::End, Align::Start));
         con.ascii(CONSOLE_WIDTH as i32 - 2, 6, 30);
         con.fore(CONSOLE_WIDTH as i32 - 2, 6, black);
         render_rect(con, CONSOLE_WIDTH as i32, CONSOLE_HEIGHT as i32, 3, 3, Some(('-', darker_gray)), Some(dark_gray), (Align::End, Align::End));
         con.ascii(CONSOLE_WIDTH as i32 - 2, CONSOLE_HEIGHT as i32 - 2,31);
         con.fore(CONSOLE_WIDTH as i32 - 2, CONSOLE_HEIGHT as i32 - 2,black);
-        // println!("{} | {}", self.position.1, self.scores[self.position.0].1.len());
+        // println!("{} | {}", self.cursor, self.scores[self.tab].1.len());
 
         // render best
-        for i in 0..self.scores[self.position.0].2.len() {
+        for i in 0..self.scores[self.tab].2.len() {
             
             // get the score record
-            let record = self.scores[self.position.0].2[i];
+            let record = self.scores[self.tab].2[i];
 
             // render 
-            render_button(con, 0, 10 + (i as i32 - self.position.1 as i32) * 5, 40, 5, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
+            // render_button(con, 0, 10 + (i as i32 - self.cursor as i32) * 5, 40, 5, format!("{}º Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", i+1, record.0, record.1, record.2).as_str(), white, None, None, Align::start2());
+            con.area(0, 10 + (i as i32 - self.cursor as i32) * 5, 40, 1, None, Some(darker_gray), Some(0));
+            con.area(0, 14 + (i as i32 - self.cursor as i32) * 5, 40, 1, None, Some(darker_gray), Some(0));
+            con.rectangle(0, 10 + (i as i32 - self.cursor as i32) * 5, 40, 5, Some(white.u8()), None, Some(0));
+            con.print(4, 10 + (i as i32 - self.cursor as i32) * 5, format!("{}º", i+1).as_str(), doryen_rs::TextAlign::Right, Some(white.u8()), None);
+            con.print(38, 10 + (i as i32 - self.cursor as i32) * 5, ["Singleplayer", "Versus"][record.1 as usize], doryen_rs::TextAlign::Right, Some([RTColor::Cyan, RTColor::Magenta][record.1 as usize].u8()), None);
+            con.print(1, 10 + (i as i32 - self.cursor as i32) * 5 + 2, self.profiles[record.0 as usize].as_str(), doryen_rs::TextAlign::Left, Some(blue.u8()), None);
+            con.print_color(37, 10 + (i as i32 - self.cursor as i32) * 5 + 2, format!("#[green]{}", record.2).as_str(), doryen_rs::TextAlign::Right, None);
         }
 
         // render history
-        for i in 0..self.scores[self.position.0].1.len() {
+        for i in 0..self.scores[self.tab].1.len() {
             
             // get the score record
-            let record = self.scores[self.position.0].1[i];
+            let record = self.scores[self.tab].1[i];
 
             // render 
-            render_button(con, 40, 10 + (i as i32 - self.position.1 as i32) * 5, 37, 5, format!("Player: #[red]{}#[white] | GM: #[blue]{}#[white] | Score: #[green]{}", record.0, record.1, record.2).as_str(), white, Some(darker_gray), None, Align::start2());
+            con.area(40, 10 + (i as i32 - self.cursor as i32) * 5, 37, 1, None, Some(darker_gray), Some(0));
+            con.area(40, 14 + (i as i32 - self.cursor as i32) * 5, 37, 1, None, Some(darker_gray), Some(0));
+            con.rectangle(40, 10 + (i as i32 - self.cursor as i32) * 5, 37, 5, Some(white.u8()), None, Some(0));
+            con.print(75, 10 + (i as i32 - self.cursor as i32) * 5, ["Singleplayer", "Versus"][record.1 as usize], doryen_rs::TextAlign::Right, Some([RTColor::Cyan, RTColor::Magenta][record.1 as usize].u8()), None);
+            con.print(41, 10 + (i as i32 - self.cursor as i32) * 5 + 2, self.profiles[record.0 as usize].as_str(), doryen_rs::TextAlign::Left, Some(blue.u8()), None);
+            con.print_color(74, 10 + (i as i32 - self.cursor as i32) * 5 + 2, format!("#[green]{}", record.2).as_str(), doryen_rs::TextAlign::Right, None);
         }
         
         // render title
-        render_button(con, 0, 0, CONSOLE_WIDTH, 5, format!("Scores: {}", self.scores[self.position.0].0).as_str(), blue, Some(darker_gray), None, (Align::Start, Align::Start));
+        render_button(con, 0, 0, CONSOLE_WIDTH, 5, format!("Scores: {}", self.scores[self.tab].0).as_str(), blue, Some(darker_gray), None, (Align::Start, Align::Start));
 
         // renders the Esc button 
         render_button(con, 0, 0, 7, 5, "Esc", red, Some(darker_gray), None, (Align::Start, Align::Start));

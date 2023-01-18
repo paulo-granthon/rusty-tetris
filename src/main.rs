@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
 mod rt; use rt::*;
 extern crate doryen_rs; use doryen_rs::{App, AppOptions};
