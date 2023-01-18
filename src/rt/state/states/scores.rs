@@ -71,7 +71,7 @@ impl Scores {
         }
     }
 
-    // switched between players
+    // switches between players
     fn tab (&mut self, dir: i8) -> Option<GameEvent> {
         let new = ((self.position.0 as i8 + dir) + self.scores.len() as i8) as usize % self.scores.len();
         if new != self.position.0 {

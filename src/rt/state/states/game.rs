@@ -23,10 +23,7 @@ pub enum PauseMenuAction { Exit, Continue }
 impl PauseMenu {
     fn new () -> Self { Self { cursor: 1 } }
     pub fn move_cursor (&mut self, dir: i8) {
-        println!("moving cursor | current: {} | dir: {}", self.cursor, dir);
-        let ci8 = self.cursor as i8;
-        self.cursor = ((((ci8 + dir) % 2) + 2) % 2) as usize;
-        println!("new cursor: {}", self.cursor)
+        self.cursor = ((((self.cursor as i8 + dir) % 2) + 2) % 2) as usize;
     }
     pub fn action (&self) -> PauseMenuAction {
         match self.cursor {

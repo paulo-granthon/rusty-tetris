@@ -74,6 +74,8 @@ pub fn get_controllers () -> Result<[Controller; 3], std::io::Error> {
 
 }
 
+/// returns the configured controller for the given category.
+/// 0: singleplayer;    1: versus1;     2: versus2;
 pub fn get_controller (player: usize) -> Result<Controller, std::io::Error> {
 
     assert!(player <= 2, "config_tracker::get_controller({}) -- Error: expected one of (0, 1, 2) player values but got {} instead!", player, player);
