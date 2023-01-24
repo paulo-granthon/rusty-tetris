@@ -1,6 +1,11 @@
 # Rusty Tetris
 Tetris implementation with Rust
 
+### Try it out!
+1. [download the latest release](https://github.com/paulo-granthon/rusty-tetris/releases)
+2. extract the *.rar* file 
+3. open *"rusty_tetris.exe"*
+
 ## Features
  - [x] Single player mode
  - [x] Local versus Mode
