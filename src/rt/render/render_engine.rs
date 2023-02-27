@@ -53,16 +53,16 @@ impl RenderEngine for Game {
 
         if match &self.run_state {
             RunState::Start => {
-                con.print(half_con_width + player_x_offset, half_pf_height, "Press \"Down\", \"Up\' or \"Skip\" to start", TextAlign::Center, Some(RTColor::White.u8()), None);
+                con.print(half_con_width, half_pf_height, "Press \"Down\", \"Up\' or \"Skip\" to start", TextAlign::Center, Some(RTColor::White.u8()), None);
                 false
             },
             RunState::Paused(menu) => {
-                render_paused_popup(con, half_con_width + player_x_offset, half_con_height, 32, 7, menu);
+                render_paused_popup(con, half_con_width, half_con_height, 32, 7, menu);
                 true
             },
             RunState::Over => {
-                render_game_over_popup(con, half_con_width + player_x_offset, half_con_height, 24, 7);
-                con.print(half_con_width + player_x_offset, half_con_height + 1, format!("Scored {} points!", &self.score).as_str(), doryen_rs::TextAlign::Center, Some(RTColor::Red.u8()), None);
+                render_game_over_popup(con, half_con_width, half_con_height, 24, 7);
+                con.print(half_con_width, half_con_height + 1, format!("Scored {} points!", &self.score).as_str(), doryen_rs::TextAlign::Center, Some(RTColor::Red.u8()), None);
                 true
             }
             _=> false
