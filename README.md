@@ -6,6 +6,19 @@ Tetris implementation with Rust
 2. Extract the *.rar* file 
 3. Open *"rusty_tetris.exe"*
 
+# About
+Fully working implementation of Tetris in Rust following official guidelines for the behaviour of the game, including the Super Rotation System that describes how the pieces should rotate and wall-kick.
+
+Local Versus Mode to challenge friends on a 1v1 Tetris match.
+
+Score system that tracks the score history as well as the best scores and saves to binary files.
+
+Profile system capable of storing up to 16 different players by name to differentiate the scores generated during gameplay. Able to create, delete and rename profiles.
+
+Settings screen to customize the controls for singleplayer and versus mode.
+
+
+
 <details><summary>
 
 # Screenshots
@@ -47,7 +60,7 @@ Rebinding a key:
  - [x] Persisting data with binary files
  - [x] Profile system
  - [x] Settings
- - [ ] Mouse support
+ - [ ] ~~Mouse support~~
  
 # References
 [Tetris](https://pt.wikipedia.org/wiki/Tetris) - Wikipedia page  
