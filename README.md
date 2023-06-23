@@ -1,75 +1,77 @@
 [![unsafe forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
 
-# Rusty Tetris
-Tetris implementation with Rust
+<div align="center">
 
-## Try it out!
+# ![Rusty Tetris](./cover.png?raw=true)
+
+</div>
+
+A fully working implementation of Tetris in Rust following official guidelines, including the Super Rotation System that describes how the pieces should rotate and wall-kick.  
+Local Versus Mode to challenge friends on a 1v1 Tetris match.  
+Score system that tracks and saves the match history and the best scores to binary files.  
+Profile system capable of storing up to 16 different players by name to differentiate the scores generated during gameplay. Able to create, delete and rename profiles.  
+Settings screen to customize the controls for singleplayer and versus mode.  
+
+## Try it out
+
 1. Download the latest release. [Click here for direct download](https://github.com/paulo-granthon/rusty-tetris/releases/latest/download/release.rar).
-2. Extract the *.rar* file 
+2. Extract the *.rar* file
 3. Open *"rusty_tetris.exe"*
 
-# About
-Fully working implementation of Tetris in Rust following official guidelines for the behaviour of the game, including the Super Rotation System that describes how the pieces should rotate and wall-kick.
+<details><summary><h2>Screenshots</h2></summary>
 
-Local Versus Mode to challenge friends on a 1v1 Tetris match.
+### Title screen  
 
-Score system that tracks the score history as well as the best scores and saves to binary files.
+![Title](./captures/title.png?raw=true)
 
-Profile system capable of storing up to 16 different players by name to differentiate the scores generated during gameplay. Able to create, delete and rename profiles.
+### Single-player game  
 
-Settings screen to customize the controls for singleplayer and versus mode.
+![Single-player 1](./captures/new.png?raw=true)
+![Single-player 2](./captures/single.png?raw=true)
 
+### Versus mode  
 
+![Versus mode](./captures/versus.png?raw=true)
 
-<details><summary>
+### Game over  
 
-# Screenshots
+![Game Over](./captures/over.png?raw=true)
 
-</summary>
+### Profiles  
 
+![Profiles](./captures/profiles.png?raw=true)
 
-Title screen:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/title.png?raw=true)
+### Scores  
 
-Singleplayer game:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/new.png?raw=true)
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/single.png?raw=true)
+![Scores](./captures/scores.png?raw=true)
 
-Versus mode:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/versus.png?raw=true)
+### Settings  
 
-Game over:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/over.png?raw=true)
+![Settings](./captures/settings.png?raw=true)
 
-Profiles:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/profiles.png?raw=true)
+### Rebinding a key  
 
-Scores:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/scores.png?raw=true)
-
-Settings:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/settings.png?raw=true)
-
-Rebinding a key:  
-![alt text](https://github.com/paulo-granthon/rusty-tetris/blob/main/captures/rebind.png?raw=true)
+![Rebinding](./captures/rebind.png?raw=true)
 
 </details>
 
-# Backlog
- - [x] Single player mode
- - [x] Local versus Mode
- - [x] Score history and best scores tracking
- - [x] Persisting data with binary files
- - [x] Profile system
- - [x] Settings
- - [ ] ~~Mouse support~~
- 
+# Backlog  
+
+- [x] Single-player mode
+- [x] Local versus Mode
+- [x] Score history and best scores tracking
+- [x] Persisting data with binary files
+- [x] Profile system
+- [x] Settings
+- [ ] ~~Mouse support~~
+
 # References
+
 [Tetris](https://pt.wikipedia.org/wiki/Tetris) - Wikipedia page  
-[Tetromino](https://tetris.fandom.com/wiki/Tetromino) - Naming convention for the Tetris pieces  
-[Super Rotation System](https://tetris.fandom.com/wiki/SRS) - Tetromino's rotation system guidelines  
-[Random Generator](https://tetris.fandom.com/wiki/Random_Generator) - Pseudo random sequence generator guidelines  
+[Super Rotation System](https://tetris.fandom.com/wiki/SRS) - Rotation system guidelines  
+[Random Generator](https://tetris.fandom.com/wiki/Random_Generator) - Pseudo-random piece sequence generator guidelines  
 
 # Technologies
+
 [Rust](https://www.rust-lang.org/) - the programming language  
 [doryen-rs](https://github.com/jice-nospam/doryen-rs) - rendering library  
